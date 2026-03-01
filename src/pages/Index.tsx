@@ -1,14 +1,25 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import AppSidebar from "@/components/AppSidebar";
+import HeroBanner from "@/components/HeroBanner";
+import StatsCards from "@/components/StatsCards";
+import BookCatalog from "@/components/BookCatalog";
+import RecentActivity from "@/components/RecentActivity";
 
-const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+const Index = () => (
+  <div className="flex min-h-screen bg-background">
+    <AppSidebar />
+    <main className="flex-1 p-6 overflow-auto">
+      <HeroBanner />
+      <StatsCards />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
+        <div className="xl:col-span-2">
+          <BookCatalog />
+        </div>
+        <div>
+          <RecentActivity />
+        </div>
       </div>
-    </div>
-  );
-};
+    </main>
+  </div>
+);
 
 export default Index;
