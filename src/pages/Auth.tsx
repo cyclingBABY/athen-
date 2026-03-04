@@ -112,6 +112,29 @@ const Auth = () => {
               {isLogin ? "Sign In" : "Create Account"}
             </button>
           </form>
+
+          <div className="mt-6 pt-4 border-t border-border">
+            <p className="text-xs text-muted-foreground text-center mb-3">Quick Demo Login</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => { setEmail("admin@athenaeum.com"); setPassword("admin123"); setIsLogin(true); }}
+                className="py-2 text-xs rounded-lg border bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              >
+                Fill Admin
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => { setEmail("patron@athenaeum.com"); setPassword("patron123"); setIsLogin(true); }}
+                className="py-2 text-xs rounded-lg border bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              >
+                Fill Patron
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center mt-2">Register these accounts first, then use them to sign in.</p>
+          </div>
         </div>
       </div>
     </div>
