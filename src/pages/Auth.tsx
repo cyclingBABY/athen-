@@ -119,21 +119,41 @@ const Auth = () => {
               <button
                 type="button"
                 disabled={loading}
-                onClick={() => { setEmail("admin@athenaeum.com"); setPassword("admin123"); setIsLogin(true); }}
+                onClick={async () => {
+                  setLoading(true);
+                  // Try login first, if fails then register and login
+                  const { error: loginErr } = await supabase.auth.signInWithPassword({ email: "admin@athenaeum.com", password: "admin123" });
+                  if (loginErr) {
+                    await supabase.auth.signUp({ email: "admin@athenaeum.com", password: "admin123", options: { data: { full_name: "Admin User" } } });
+                    const { error } = await supabase.auth.signInWithPassword({ email: "admin@athenaeum.com", password: "admin123" });
+                    if (error) { toast({ title: "Failed", description: error.message, variant: "destructive" }); setLoading(false); return; }
+                  }
+                  navigate("/");
+                  setLoading(false);
+                }}
                 className="py-2 text-xs rounded-lg border bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
               >
-                Fill Admin
+                Login as Admin
               </button>
               <button
                 type="button"
                 disabled={loading}
-                onClick={() => { setEmail("patron@athenaeum.com"); setPassword("patron123"); setIsLogin(true); }}
+                onClick={async () => {
+                  setLoading(true);
+                  const { error: loginErr } = await supabase.auth.signInWithPassword({ email: "patron@athenaeum.com", password: "patron123" });
+                  if (loginErr) {
+                    await supabase.auth.signUp({ email: "patron@athenaeum.com", password: "patron123", options: { data: { full_name: "Demo Patron" } } });
+                    const { error } = await supabase.auth.signInWithPassword({ email: "patron@athenaeum.com", password: "patron123" });
+                    if (error) { toast({ title: "Failed", description: error.message, variant: "destructive" }); setLoading(false); return; }
+                  }
+                  navigate("/");
+                  setLoading(false);
+                }}
                 className="py-2 text-xs rounded-lg border bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
               >
-                Fill Patron
+                Login as Patron
               </button>
             </div>
-            <p className="text-[10px] text-muted-foreground text-center mt-2">Register these accounts first, then use them to sign in.</p>
           </div>
         </div>
       </div>
