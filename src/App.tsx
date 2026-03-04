@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import PatronHome from "./pages/PatronHome";
 import PatronCatalog from "./pages/PatronCatalog";
 import PatronMyBooks from "./pages/PatronMyBooks";
 import PatronReservations from "./pages/PatronReservations";
@@ -26,6 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute><PatronHome /></ProtectedRoute>} />
             <Route path="/catalog" element={<ProtectedRoute><PatronCatalog /></ProtectedRoute>} />
             <Route path="/my-books" element={<ProtectedRoute><PatronMyBooks /></ProtectedRoute>} />
             <Route path="/reservations" element={<ProtectedRoute><PatronReservations /></ProtectedRoute>} />

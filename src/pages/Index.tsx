@@ -5,17 +5,14 @@ import HeroBanner from "@/components/HeroBanner";
 import StatsCards from "@/components/StatsCards";
 import BookCatalog from "@/components/BookCatalog";
 import RecentActivity from "@/components/RecentActivity";
-import PatronCatalog from "@/pages/PatronCatalog";
 
 const Index = () => {
   const { role } = useAuth();
 
-  // Patrons go to catalog as their home
   if (role === "patron") {
-    return <Navigate to="/catalog" replace />;
+    return <Navigate to="/home" replace />;
   }
 
-  // Admin dashboard
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar />

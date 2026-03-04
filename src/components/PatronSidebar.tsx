@@ -1,8 +1,9 @@
-import { BookOpen, Search, BookCopy, CalendarClock, DollarSign, User, LogOut } from "lucide-react";
+import { BookOpen, Home, Search, BookCopy, CalendarClock, DollarSign, User, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
+  { icon: Home, label: "Home", to: "/home" },
   { icon: Search, label: "Browse Catalog", to: "/catalog" },
   { icon: BookCopy, label: "My Books", to: "/my-books" },
   { icon: CalendarClock, label: "Reservations", to: "/reservations" },
