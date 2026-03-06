@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import heroImg from "@/assets/hero-library.jpg";
+import scanImg from "@/assets/scanning-books.jpg";
+import shelvesImg from "@/assets/library-shelves.jpg";
 
 const features = [
   { icon: Search, title: "Smart Book Catalog", desc: "Advanced search with filters by genre, author, availability, and ISBN for instant discovery." },
