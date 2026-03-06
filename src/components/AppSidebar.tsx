@@ -1,24 +1,30 @@
-import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut } from "lucide-react";
-import { useState } from "react";
+import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, ArrowRightLeft, ClipboardList, Shield, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", active: true },
-  { icon: BookOpen, label: "Catalog" },
-  { icon: BookCopy, label: "Circulation" },
-  { icon: Users, label: "Patrons" },
-  { icon: CalendarClock, label: "Reservations" },
-  { icon: DollarSign, label: "Fines & Fees" },
-  { icon: BarChart3, label: "Analytics" },
-  { icon: Settings, label: "Settings" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: BookOpen, label: "Cataloging", path: "/admin/cataloging" },
+  { icon: QrCode, label: "Barcoding", path: "/admin/barcoding" },
+  { icon: Upload, label: "Digital Upload", path: "/admin/digital-upload" },
+  { icon: MapPin, label: "Shelf Location", path: "/admin/shelf-location" },
+  { icon: ArrowRightLeft, label: "Circulation", path: "/admin/circulation" },
+  { icon: Users, label: "Patrons", path: "/admin/patrons" },
+  { icon: ClipboardList, label: "Inventory", path: "/admin/inventory" },
+  { icon: CalendarClock, label: "Holds", path: "/admin/holds" },
+  { icon: DollarSign, label: "Fines & Fees", path: "/admin/fines" },
+  { icon: Shield, label: "Digital Access", path: "/admin/digital-access" },
+  { icon: Trash2, label: "Weeding", path: "/admin/weeding" },
+  { icon: BarChart3, label: "Reporting", path: "/admin/reporting" },
 ];
 
 const AppSidebar = () => {
-  const [activeItem, setActiveItem] = useState("Dashboard");
   const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
-    <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col">
+    <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col shrink-0">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
@@ -38,18 +44,18 @@ const AppSidebar = () => {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-2 space-y-1">
-        {navItems.map(({ icon: Icon, label }) => (
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+        {navItems.map(({ icon: Icon, label, path }) => (
           <button
             key={label}
-            onClick={() => setActiveItem(label)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              activeItem === label
+            onClick={() => navigate(path)}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              location.pathname === path
                 ? "bg-sidebar-accent text-sidebar-primary"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
             }`}
           >
-            <Icon className="w-[18px] h-[18px]" />
+            <Icon className="w-[18px] h-[18px] shrink-0" />
             {label}
           </button>
         ))}
