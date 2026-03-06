@@ -36,12 +36,23 @@ const steps = [
 
 const Landing = () => {
   const [books, setBooks] = useState<any[]>([]);
+  const [activeFeature, setActiveFeature] = useState(0);
 
   useEffect(() => {
     supabase.from("books").select("*").limit(4).then(({ data }) => {
       if (data) setBooks(data);
     });
   }, []);
+
+  // Auto-slide features every 4 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % features.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const goToFeature = useCallback((idx: number) => setActiveFeature(idx), []);
 
   return (
     <div className="min-h-screen bg-background">
