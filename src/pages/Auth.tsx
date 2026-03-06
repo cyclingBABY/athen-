@@ -9,6 +9,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [accountType, setAccountType] = useState<"patron" | "admin">("patron");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -28,12 +29,12 @@ const Auth = () => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: { data: { full_name: fullName, account_type: accountType } },
       });
       if (error) {
         toast({ title: "Registration failed", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Account created!", description: "You are now logged in." });
+        toast({ title: "Account created!", description: `You are now logged in as ${accountType}.` });
         navigate("/dashboard");
       }
     }
@@ -79,6 +80,19 @@ const Auth = () => {
                   className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
                   placeholder="Your full name"
                 />
+              </div>
+            )}
+            {!isLogin && (
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Account Type</label>
+                <select
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value as "patron" | "admin")}
+                  className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
+                >
+                  <option value="patron">User (Patron)</option>
+                  <option value="admin">Admin (Librarian)</option>
+                </select>
               </div>
             )}
             <div>
