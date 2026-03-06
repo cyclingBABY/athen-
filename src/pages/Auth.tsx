@@ -9,6 +9,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [accountType, setAccountType] = useState<"patron" | "admin">("patron");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,13 +26,18 @@ const Auth = () => {
         navigate("/dashboard");
       }
     } else {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { full_name: fullName } },
       });
       if (error) {
         toast({ title: "Registration failed", description: error.message, variant: "destructive" });
+      } else if (data.user && accountType === "admin") {
+        // Update role to admin
+        await supabase.from("user_roles").update({ role: "admin" }).eq("user_id", data.user.id);
+        toast({ title: "Admin account created!", description: "You are now logged in as admin." });
+        navigate("/dashboard");
       } else {
         toast({ title: "Account created!", description: "You are now logged in." });
         navigate("/dashboard");
