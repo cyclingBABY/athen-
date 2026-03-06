@@ -36,13 +36,28 @@ const steps = [
 
 const Landing = () => {
   const [books, setBooks] = useState<any[]>([]);
+  const [allBooks, setAllBooks] = useState<any[]>([]);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [bookSlideOffset, setBookSlideOffset] = useState(0);
 
   useEffect(() => {
     supabase.from("books").select("*").limit(4).then(({ data }) => {
       if (data) setBooks(data);
     });
+    // Fetch more books for the showcase slider
+    supabase.from("books").select("*").order("created_at", { ascending: false }).limit(20).then(({ data }) => {
+      if (data) setAllBooks(data);
+    });
   }, []);
+
+  // Auto-scroll book showcase
+  useEffect(() => {
+    if (allBooks.length <= 4) return;
+    const timer = setInterval(() => {
+      setBookSlideOffset((prev) => (prev + 1) % allBooks.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [allBooks.length]);
 
   // Auto-slide features every 4 seconds
   useEffect(() => {
@@ -113,6 +128,59 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Book Showcase Slider */}
+      {allBooks.length > 0 && (
+        <section className="py-16 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
+                Our Collection
+              </h2>
+              <p className="text-muted-foreground mt-3 max-w-md mx-auto">
+                Explore the latest additions to our library catalog.
+              </p>
+            </div>
+          </div>
+          <div className="relative">
+            <div
+              className="flex gap-6 transition-transform duration-700 ease-in-out px-4"
+              style={{
+                transform: `translateX(-${bookSlideOffset * 220}px)`,
+                width: `${allBooks.length * 220 + (allBooks.length - 1) * 24}px`,
+              }}
+            >
+              {[...allBooks, ...allBooks].map((book, i) => (
+                <div key={`${book.id}-${i}`} className="flex-shrink-0 w-[200px]">
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                    {book.cover_image_url ? (
+                      <img src={book.cover_image_url} alt={book.title} className="h-56 w-full object-cover" />
+                    ) : (
+                      <div className="h-56 flex items-center justify-center" style={{ backgroundColor: book.cover_color || "hsl(210 60% 50%)" }}>
+                        <BookOpen className="w-10 h-10 text-white/40" />
+                      </div>
+                    )}
+                    <CardContent className="p-3 space-y-1">
+                      <h4 className="font-display font-semibold text-sm text-foreground line-clamp-1">{book.title}</h4>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
+                      <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full capitalize ${
+                        book.status === "available" ? "bg-primary/10 text-primary" :
+                        book.status === "checked-out" ? "bg-destructive/10 text-destructive" :
+                        "bg-muted text-muted-foreground"
+                      }`}>
+                        {book.status?.replace("-", " ") || "available"}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+            </div>
+            {/* Fade edges */}
+            <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+          </div>
+        </section>
+      )}
 
       {/* Features Slider */}
       <section id="features" className="py-20 bg-muted/30">
