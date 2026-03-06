@@ -28,12 +28,13 @@ const Auth = () => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
+        options: { data: { full_name: fullName } },
       });
       if (error) {
         toast({ title: "Registration failed", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Check your email", description: "We sent a verification link to confirm your account." });
+        toast({ title: "Account created!", description: "You are now logged in." });
+        navigate("/dashboard");
       }
     }
     setLoading(false);
