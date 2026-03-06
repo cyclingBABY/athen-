@@ -49,7 +49,7 @@ const PatronSidebar = () => {
 
       <div className="p-3 mb-2">
         <button
-          onClick={signOut}
+          onClick={() => { signOut(); window.location.href = "/"; }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
         >
           <LogOut className="w-[18px] h-[18px]" />
