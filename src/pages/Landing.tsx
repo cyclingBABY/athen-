@@ -11,14 +11,21 @@ import coverSolitude from "@/assets/cover-solitude.jpg";
 import coverTime from "@/assets/cover-time.jpg";
 import coverSapiens from "@/assets/cover-sapiens.jpg";
 import coverDune from "@/assets/cover-dune.jpg";
+import featCatalog from "@/assets/feat-catalog.jpg";
+import featBarcode from "@/assets/feat-barcode.jpg";
+import featMembers from "@/assets/feat-members.jpg";
+import featBorrow from "@/assets/feat-borrow.jpg";
+import featDigital from "@/assets/feat-digital.jpg";
+import featAnalytics from "@/assets/feat-analytics.jpg";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const features = [
-  { icon: Search, title: "Smart Book Catalog", desc: "Advanced search with filters by genre, author, availability, and ISBN for instant discovery." },
-  { icon: QrCode, title: "Barcode Scanning", desc: "Scan barcodes for lightning-fast borrowing and returns — no manual entry required." },
-  { icon: Users, title: "Member Management", desc: "Register and manage students, staff, and faculty with role-based access controls." },
-  { icon: BookMarked, title: "Borrow & Return Tracking", desc: "Real-time tracking of due dates, renewals, and overdue notifications." },
-  { icon: Download, title: "Digital Library", desc: "Upload and manage ebooks, PDFs, and audiobooks with secure digital lending." },
-  { icon: BarChart3, title: "Analytics Dashboard", desc: "Comprehensive reports on circulation trends, popular titles, and patron activity." },
+  { icon: Search, title: "Smart Book Catalog", desc: "Advanced search with filters by genre, author, availability, and ISBN for instant discovery.", img: featCatalog },
+  { icon: QrCode, title: "Barcode Scanning", desc: "Scan barcodes for lightning-fast borrowing and returns — no manual entry required.", img: featBarcode },
+  { icon: Users, title: "Member Management", desc: "Register and manage students, staff, and faculty with role-based access controls.", img: featMembers },
+  { icon: BookMarked, title: "Borrow & Return Tracking", desc: "Real-time tracking of due dates, renewals, and overdue notifications.", img: featBorrow },
+  { icon: Download, title: "Digital Library", desc: "Upload and manage ebooks, PDFs, and audiobooks with secure digital lending.", img: featDigital },
+  { icon: BarChart3, title: "Analytics Dashboard", desc: "Comprehensive reports on circulation trends, popular titles, and patron activity.", img: featAnalytics },
 ];
 
 const steps = [
