@@ -193,8 +193,28 @@ const StaffAuth = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1.5 block">Department</label>
-                    <input type="text" required value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClass} placeholder="e.g. Computer Science" />
-                  </div>
+                    <select required value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClass}>
+                      <option value="">Select department</option>
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Information Technology">Information Technology</option>
+                      <option value="Mathematics">Mathematics</option>
+                      <option value="Physics">Physics</option>
+                      <option value="Chemistry">Chemistry</option>
+                      <option value="Biology">Biology</option>
+                      <option value="Engineering">Engineering</option>
+                      <option value="Business Administration">Business Administration</option>
+                      <option value="Economics">Economics</option>
+                      <option value="Accounting">Accounting</option>
+                      <option value="Law">Law</option>
+                      <option value="Education">Education</option>
+                      <option value="Medicine">Medicine</option>
+                      <option value="Nursing">Nursing</option>
+                      <option value="Agriculture">Agriculture</option>
+                      <option value="Arts & Humanities">Arts & Humanities</option>
+                      <option value="Social Sciences">Social Sciences</option>
+                      <option value="Library Science">Library Science</option>
+                    </select>
+                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1.5 block">Campus</label>
                     <input type="text" required value={campus} onChange={(e) => setCampus(e.target.value)} className={inputClass} placeholder="e.g. Main Campus" />
