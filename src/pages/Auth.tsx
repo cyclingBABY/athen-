@@ -233,6 +233,9 @@ const Auth = () => {
                       placeholder="e.g. Main Campus"
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground bg-secondary/50 p-2 rounded-lg">
+                    📋 Your Library Card Number will be generated automatically after registration.
+                  </p>
                 </>
               )}
               <div>

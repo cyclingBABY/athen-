@@ -3,9 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import PatronSidebar from "@/components/PatronSidebar";
-import LibraryCard from "@/components/LibraryCard";
+import LibraryIDCard from "@/components/LibraryIDCard";
 import { Loader2 } from "lucide-react";
-import { format } from "date-fns";
 
 const PatronProfile = () => {
   const { user } = useAuth();
@@ -69,10 +68,16 @@ const PatronProfile = () => {
                 <label className="text-sm font-medium mb-1.5 block">Email</label>
                 <input type="email" value={profile?.email || ""} disabled className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted cursor-not-allowed" />
               </div>
-              {(profile as any)?.registration_number && (
+              {profile?.registration_number && (
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Registration Number</label>
-                  <input type="text" value={(profile as any).registration_number} disabled className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted cursor-not-allowed" />
+                  <input type="text" value={profile.registration_number} disabled className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted cursor-not-allowed" />
+                </div>
+              )}
+              {profile?.library_card_number && (
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Library Card Number</label>
+                  <input type="text" value={profile.library_card_number} disabled className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted cursor-not-allowed font-mono" />
                 </div>
               )}
               <div>
@@ -94,17 +99,18 @@ const PatronProfile = () => {
             </form>
           </div>
 
-          {/* Library Card */}
+          {/* Printable Library ID Card */}
           {profile?.approved && (
             <div className="bg-card rounded-xl border p-6">
-              <h2 className="text-lg font-semibold mb-4">My Library Card</h2>
-              <LibraryCard
+              <h2 className="text-lg font-semibold mb-4">My Library ID Card</h2>
+              <LibraryIDCard
                 fullName={profile.full_name || "Member"}
-                registrationNumber={(profile as any).registration_number || "N/A"}
                 email={profile.email || ""}
-                photoUrl={(profile as any).photo_url || null}
-                memberId={profile.id?.slice(0, 8).toUpperCase() || ""}
-                memberSince={profile.created_at ? format(new Date(profile.created_at), "MMM yyyy") : ""}
+                cardNumber={profile.library_card_number || ""}
+                role="patron"
+                photoUrl={profile.photo_url}
+                campus={profile.campus}
+                registrationNumber={profile.registration_number}
               />
             </div>
           )}

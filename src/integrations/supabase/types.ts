@@ -347,6 +347,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          library_card_number: string | null
           phone: string | null
           photo_url: string | null
           registration_number: string | null
@@ -365,6 +366,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          library_card_number?: string | null
           phone?: string | null
           photo_url?: string | null
           registration_number?: string | null
@@ -383,6 +385,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          library_card_number?: string | null
           phone?: string | null
           photo_url?: string | null
           registration_number?: string | null

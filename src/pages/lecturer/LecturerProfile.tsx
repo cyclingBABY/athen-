@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import LecturerLayout from "@/components/LecturerLayout";
+import LibraryIDCard from "@/components/LibraryIDCard";
 import { User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,7 +14,7 @@ const LecturerProfile = () => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
-  const [staffId, setStaffId] = useState("");
+  const [campus, setCampus] = useState("");
   const [address, setAddress] = useState("");
 
   const { data: profile, isLoading } = useQuery({
@@ -34,7 +35,7 @@ const LecturerProfile = () => {
       setFullName(profile.full_name || "");
       setPhone(profile.phone || "");
       setDepartment((profile as any).department || "");
-      setStaffId((profile as any).staff_id || "");
+      setCampus((profile as any).campus || "");
       setAddress(profile.address || "");
     }
   }, [profile]);
@@ -43,7 +44,7 @@ const LecturerProfile = () => {
     mutationFn: async () => {
       const { error } = await supabase
         .from("profiles")
-        .update({ full_name: fullName, phone, department, staff_id: staffId, address } as any)
+        .update({ full_name: fullName, phone, department, campus, address } as any)
         .eq("user_id", user!.id);
       if (error) throw error;
     },
@@ -68,8 +69,10 @@ const LecturerProfile = () => {
 
   return (
     <LecturerLayout title="Profile" description="Manage your personal information">
-      <div className="max-w-xl">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Profile Form */}
         <div className="bg-card border rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Personal Information</h2>
           <div className="flex items-center gap-4 mb-4">
             {profile?.photo_url ? (
               <img src={profile.photo_url} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-muted" />
@@ -81,6 +84,9 @@ const LecturerProfile = () => {
             <div>
               <h3 className="font-semibold text-foreground">{profile?.full_name || "Lecturer"}</h3>
               <p className="text-sm text-muted-foreground">{profile?.email}</p>
+              {(profile as any)?.library_card_number && (
+                <p className="text-xs text-primary font-mono font-semibold mt-0.5">{(profile as any).library_card_number}</p>
+              )}
             </div>
           </div>
 
@@ -98,8 +104,8 @@ const LecturerProfile = () => {
               <input value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClass} />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Staff ID</label>
-              <input value={staffId} onChange={(e) => setStaffId(e.target.value)} className={inputClass} />
+              <label className="text-sm font-medium mb-1.5 block">Campus</label>
+              <input value={campus} onChange={(e) => setCampus(e.target.value)} className={inputClass} />
             </div>
             <div className="md:col-span-2">
               <label className="text-sm font-medium mb-1.5 block">Address</label>
@@ -116,6 +122,22 @@ const LecturerProfile = () => {
             Save Changes
           </button>
         </div>
+
+        {/* Printable Library ID Card */}
+        {profile?.approved && (
+          <div className="bg-card border rounded-xl p-6">
+            <h2 className="text-lg font-semibold mb-4">My Library ID Card</h2>
+            <LibraryIDCard
+              fullName={profile.full_name || "Lecturer"}
+              email={profile.email || ""}
+              cardNumber={(profile as any).library_card_number || ""}
+              role="lecturer"
+              photoUrl={profile.photo_url}
+              department={(profile as any).department}
+              campus={(profile as any).campus}
+            />
+          </div>
+        )}
       </div>
     </LecturerLayout>
   );
