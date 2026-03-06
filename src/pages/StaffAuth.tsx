@@ -214,8 +214,7 @@ const StaffAuth = () => {
                       <option value="Social Sciences">Social Sciences</option>
                       <option value="Library Science">Library Science</option>
                     </select>
-                  </div>
-                  </div>
+                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1.5 block">Campus</label>
                     <input type="text" required value={campus} onChange={(e) => setCampus(e.target.value)} className={inputClass} placeholder="e.g. Main Campus" />
