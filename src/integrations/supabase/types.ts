@@ -341,6 +341,7 @@ export type Database = {
           address: string | null
           approved: boolean
           avatar_url: string | null
+          campus: string | null
           created_at: string
           department: string | null
           email: string | null
@@ -358,6 +359,7 @@ export type Database = {
           address?: string | null
           approved?: boolean
           avatar_url?: string | null
+          campus?: string | null
           created_at?: string
           department?: string | null
           email?: string | null
@@ -375,6 +377,7 @@ export type Database = {
           address?: string | null
           approved?: boolean
           avatar_url?: string | null
+          campus?: string | null
           created_at?: string
           department?: string | null
           email?: string | null

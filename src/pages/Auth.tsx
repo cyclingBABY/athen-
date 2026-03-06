@@ -11,6 +11,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
+  const [campus, setCampus] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -96,13 +97,15 @@ const Auth = () => {
         return;
       }
 
-      if (data.user && photoFile) {
-        const photoUrl = await uploadPhoto(data.user.id);
-        if (photoUrl) {
-          setTimeout(async () => {
-            await supabase.from("profiles").update({ photo_url: photoUrl }).eq("user_id", data.user!.id);
-          }, 1000);
-        }
+      if (data.user) {
+        setTimeout(async () => {
+          const updates: any = { campus: campus || null };
+          if (photoFile) {
+            const photoUrl = await uploadPhoto(data.user!.id);
+            if (photoUrl) updates.photo_url = photoUrl;
+          }
+          await supabase.from("profiles").update(updates).eq("user_id", data.user!.id);
+        }, 1000);
       }
 
       await supabase.auth.signOut();
@@ -218,6 +221,17 @@ const Auth = () => {
                       placeholder="e.g. 22/BIT/BU/R/1001"
                     />
                     <p className="text-xs text-muted-foreground mt-1">Your student/staff registration number</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Campus</label>
+                    <input
+                      type="text"
+                      required
+                      value={campus}
+                      onChange={(e) => setCampus(e.target.value)}
+                      className={inputClass}
+                      placeholder="e.g. Main Campus"
+                    />
                   </div>
                 </>
               )}
