@@ -97,13 +97,15 @@ const Auth = () => {
         return;
       }
 
-      if (data.user && photoFile) {
-        const photoUrl = await uploadPhoto(data.user.id);
-        if (photoUrl) {
-          setTimeout(async () => {
-            await supabase.from("profiles").update({ photo_url: photoUrl }).eq("user_id", data.user!.id);
-          }, 1000);
-        }
+      if (data.user) {
+        setTimeout(async () => {
+          const updates: any = { campus: campus || null };
+          if (photoFile) {
+            const photoUrl = await uploadPhoto(data.user!.id);
+            if (photoUrl) updates.photo_url = photoUrl;
+          }
+          await supabase.from("profiles").update(updates).eq("user_id", data.user!.id);
+        }, 1000);
       }
 
       await supabase.auth.signOut();
