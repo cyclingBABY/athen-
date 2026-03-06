@@ -13,7 +13,7 @@ const AuthCtx = createContext<AuthContext>({ user: null, role: null, loading: tr
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<"admin" | "patron" | null>(null);
+  const [role, setRole] = useState<"admin" | "patron" | "lecturer" | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchRole = async (userId: string) => {
