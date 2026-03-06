@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, ArrowRightLeft, ClipboardList, Shield, Trash2, FileSpreadsheet, ScanLine } from "lucide-react";
+import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, ArrowRightLeft, ClipboardList, Shield, Trash2, FileSpreadsheet, ScanLine, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 
