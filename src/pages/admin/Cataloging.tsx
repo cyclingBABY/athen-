@@ -22,7 +22,19 @@ const emptyForm = {
   shelf_location: "",
 };
 
-const categories = ["General", "Fiction", "Science", "History", "Philosophy", "Psychology", "Sci-Fi", "Fantasy", "Biography", "Technology", "Art", "Reference"];
+const categories = [
+  "Business Administration",
+  "Computing & Information Technology",
+  "Development Studies",
+  "Education",
+  "Theology & Religious Studies",
+  "Food Science & Nutrition",
+  "Nursing & Health Sciences",
+  "Agriculture & Agribusiness",
+  "Environmental Science",
+  "Science & Laboratory Technology",
+  "General",
+];
 
 const generateBarcode = () => {
   const prefix = "LIB";
