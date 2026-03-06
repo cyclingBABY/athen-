@@ -10,13 +10,12 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [accountType, setAccountType] = useState<"patron" | "admin">("patron");
   const [loading, setLoading] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, role, loading: authLoading } = useAuth();
 
-  // Redirect when already authenticated
   useEffect(() => {
     if (!authLoading && user && role) {
       navigate(role === "admin" ? "/dashboard" : "/home", { replace: true });
@@ -26,26 +25,44 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setPendingApproval(false);
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
         setLoading(false);
+        return;
       }
-      // Navigation handled by useEffect above once auth state updates
+
+      // Check if user is approved
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("approved")
+        .eq("user_id", signInData.user.id)
+        .maybeSingle();
+
+      if (profile && !profile.approved) {
+        await supabase.auth.signOut();
+        setPendingApproval(true);
+        setLoading(false);
+        return;
+      }
+      // Navigation handled by useEffect
     } else {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName, account_type: accountType } },
+        options: { data: { full_name: fullName, account_type: "patron" } },
       });
       if (error) {
         toast({ title: "Registration failed", description: error.message, variant: "destructive" });
         setLoading(false);
       } else {
-        toast({ title: "Account created!", description: `You are now logged in as ${accountType}.` });
-        // Navigation handled by useEffect above
+        // Sign out immediately — they need approval
+        await supabase.auth.signOut();
+        setPendingApproval(true);
+        setLoading(false);
       }
     }
   };
@@ -61,83 +78,85 @@ const Auth = () => {
           <p className="text-sm text-muted-foreground mt-1">Library Management System</p>
         </div>
 
-        <div className="bg-card rounded-xl border p-6">
-          <div className="flex mb-6 bg-secondary rounded-lg p-1">
+        {pendingApproval ? (
+          <div className="bg-card rounded-xl border p-6 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl">⏳</div>
+            <h2 className="text-lg font-semibold">Pending Approval</h2>
+            <p className="text-sm text-muted-foreground">
+              Your account has been created but requires administrator approval before you can sign in. Please contact your librarian.
+            </p>
             <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${isLogin ? "bg-card shadow-sm" : "text-muted-foreground"}`}
+              onClick={() => setPendingApproval(false)}
+              className="text-sm text-primary hover:underline mt-2"
             >
-              Sign In
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${!isLogin ? "bg-card shadow-sm" : "text-muted-foreground"}`}
-            >
-              Register
+              Back to Sign In
             </button>
           </div>
+        ) : (
+          <div className="bg-card rounded-xl border p-6">
+            <div className="flex mb-6 bg-secondary rounded-lg p-1">
+              <button
+                onClick={() => setIsLogin(true)}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${isLogin ? "bg-card shadow-sm" : "text-muted-foreground"}`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setIsLogin(false)}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${!isLogin ? "bg-card shadow-sm" : "text-muted-foreground"}`}
+              >
+                Register
+              </button>
+            </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLogin && (
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
+                    placeholder="Your full name"
+                  />
+                </div>
+              )}
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Full Name</label>
+                <label className="text-sm font-medium mb-1.5 block">Email</label>
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
-                  placeholder="Your full name"
+                  placeholder="you@example.com"
                 />
               </div>
-            )}
-            {!isLogin && (
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Account Type</label>
-                <select
-                  value={accountType}
-                  onChange={(e) => setAccountType(e.target.value as "patron" | "admin")}
+                <label className="text-sm font-medium mb-1.5 block">Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
-                >
-                  <option value="patron">User (Patron)</option>
-                  <option value="admin">Admin (Librarian)</option>
-                </select>
+                  placeholder="••••••••"
+                />
               </div>
-            )}
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Password</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
-                placeholder="••••••••"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isLogin ? "Sign In" : "Create Account"}
-            </button>
-          </form>
-
-        </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isLogin ? "Sign In" : "Create Account"}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
