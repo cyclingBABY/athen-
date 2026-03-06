@@ -114,7 +114,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Features Slider */}
       <section id="features" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
@@ -125,18 +125,92 @@ const Landing = () => {
               A complete toolkit for modern library operations, from cataloging to analytics.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f) => (
-              <Card key={f.title} className="group hover:shadow-lg transition-shadow border bg-card">
-                <CardContent className="p-6 space-y-3">
-                  <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <f.icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <h3 className="font-display font-semibold text-lg text-foreground">{f.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
+
+          <div className="max-w-5xl mx-auto">
+            {/* Main slide */}
+            <div className="relative rounded-2xl overflow-hidden bg-card border shadow-xl">
+              <div className="grid md:grid-cols-2">
+                {/* Image side */}
+                <div className="relative h-64 md:h-96 overflow-hidden">
+                  {features.map((f, i) => (
+                    <img
+                      key={f.title}
+                      src={f.img}
+                      alt={f.title}
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+                        i === activeFeature ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {/* Text side */}
+                <div className="p-8 md:p-12 flex flex-col justify-center">
+                  {features.map((f, i) => (
+                    <div
+                      key={f.title}
+                      className={`transition-all duration-500 ${
+                        i === activeFeature ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute pointer-events-none"
+                      }`}
+                    >
+                      {i === activeFeature && (
+                        <>
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                            <f.icon className="w-6 h-6 text-primary" />
+                          </div>
+                          <h3 className="text-2xl font-display font-bold text-foreground mb-3">{f.title}</h3>
+                          <p className="text-muted-foreground leading-relaxed text-base">{f.desc}</p>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Navigation arrows */}
+              <button
+                onClick={() => setActiveFeature((prev) => (prev - 1 + features.length) % features.length)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-background transition-colors shadow-lg"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setActiveFeature((prev) => (prev + 1) % features.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-background transition-colors shadow-lg"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Dot indicators */}
+            <div className="flex justify-center gap-2 mt-6">
+              {features.map((f, i) => (
+                <button
+                  key={f.title}
+                  onClick={() => goToFeature(i)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === activeFeature ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Feature pills */}
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
+              {features.map((f, i) => (
+                <button
+                  key={f.title}
+                  onClick={() => goToFeature(i)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    i === activeFeature
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-card border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                  }`}
+                >
+                  <f.icon className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+                  {f.title}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
