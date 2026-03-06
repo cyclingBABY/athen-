@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import heroImg from "@/assets/hero-library.jpg";
+import scanImg from "@/assets/scanning-books.jpg";
+import shelvesImg from "@/assets/library-shelves.jpg";
 
 const features = [
   { icon: Search, title: "Smart Book Catalog", desc: "Advanced search with filters by genre, author, availability, and ISBN for instant discovery." },
@@ -58,71 +61,32 @@ const Landing = () => {
 
       {/* Hero */}
       <section id="hero" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-        <div className="container mx-auto px-4 py-20 md:py-28">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground">
-                <BookOpen className="w-3.5 h-3.5 text-primary" />
-                Trusted by 200+ institutions
-              </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight text-foreground">
-                Smart Library Management{" "}
-                <span className="text-primary">Made Simple</span>
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
-                Athena helps libraries manage books, members, borrowing, digital resources, and analytics — all from one elegant platform built for modern institutions.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button size="lg" asChild>
-                  <Link to="/auth">
-                    Explore Catalog <ArrowRight className="w-4 h-4 ml-1" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/auth">Create Account</Link>
-                </Button>
-              </div>
+        <div className="absolute inset-0">
+          <img src={heroImg} alt="Modern university library with students" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
+        </div>
+        <div className="relative container mx-auto px-4 py-20 md:py-32">
+          <div className="max-w-2xl space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border bg-card/80 backdrop-blur-sm px-4 py-1.5 text-xs font-medium text-muted-foreground">
+              <BookOpen className="w-3.5 h-3.5 text-primary" />
+              Trusted by 200+ institutions
             </div>
-
-            {/* Dashboard Preview */}
-            <div className="relative hidden md:block">
-              <div className="rounded-xl border bg-card shadow-xl overflow-hidden">
-                <div className="bg-muted/50 px-4 py-2.5 border-b flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-warning/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
-                  </div>
-                  <span className="text-xs text-muted-foreground ml-2">Athena Dashboard</span>
-                </div>
-                <div className="p-5 space-y-4">
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { label: "Total Books", value: "12,847", color: "bg-primary/10 text-primary" },
-                      { label: "Active Members", value: "3,219", color: "bg-accent/10 text-accent" },
-                      { label: "Checked Out", value: "1,432", color: "bg-info/10 text-info" },
-                    ].map((s) => (
-                      <div key={s.label} className={`rounded-lg p-3 ${s.color}`}>
-                        <p className="text-[10px] uppercase tracking-wide opacity-70">{s.label}</p>
-                        <p className="text-lg font-bold">{s.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    {["One Hundred Years of Solitude", "A Brief History of Time", "Sapiens"].map((title, i) => (
-                      <div key={title} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                        <div className="w-6 h-8 rounded-sm flex-shrink-0" style={{ backgroundColor: ["hsl(24,80%,30%)", "hsl(210,60%,50%)", "hsl(36,70%,55%)"][i] }} />
-                        <span className="text-xs font-medium flex-1">{title}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${i === 1 ? "bg-info/10 text-info" : "bg-success/10 text-success"}`}>
-                          {i === 1 ? "Checked out" : "Available"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -z-10 inset-0 translate-x-4 translate-y-4 rounded-xl bg-primary/10" />
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight text-foreground">
+              Smart Library Management{" "}
+              <span className="text-primary">Made Simple</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
+              Athena helps libraries manage books, members, borrowing, digital resources, and analytics — all from one elegant platform built for modern institutions.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button size="lg" asChild>
+                <Link to="/auth">
+                  Explore Catalog <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="bg-card/50 backdrop-blur-sm" asChild>
+                <Link to="/auth">Create Account</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -155,7 +119,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* How It Works — with photos */}
       <section id="about" className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
@@ -166,19 +130,35 @@ const Landing = () => {
               Get started in three simple steps.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {steps.map((s, i) => (
-              <div key={s.num} className="text-center space-y-4 relative">
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-8 left-[60%] w-[80%] border-t-2 border-dashed border-border" />
-                )}
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                  <span className="text-xl font-display font-bold text-primary">{s.num}</span>
-                </div>
-                <h3 className="font-display font-semibold text-lg text-foreground">{s.title}</h3>
-                <p className="text-sm text-muted-foreground">{s.desc}</p>
-              </div>
-            ))}
+
+          {/* Step 1 — image left */}
+          <div className="grid md:grid-cols-2 gap-10 items-center max-w-5xl mx-auto mb-16">
+            <img src={shelvesImg} alt="Library bookshelves" className="rounded-xl shadow-lg w-full h-64 object-cover" />
+            <div className="space-y-3">
+              <span className="text-4xl font-display font-bold text-primary/20">01</span>
+              <h3 className="text-xl font-display font-semibold text-foreground">Register an Account</h3>
+              <p className="text-muted-foreground leading-relaxed">Sign up as a student, staff member, or administrator in seconds. Your account will be reviewed and approved by the library admin.</p>
+            </div>
+          </div>
+
+          {/* Step 2 — image right */}
+          <div className="grid md:grid-cols-2 gap-10 items-center max-w-5xl mx-auto mb-16">
+            <div className="space-y-3 md:order-1">
+              <span className="text-4xl font-display font-bold text-primary/20">02</span>
+              <h3 className="text-xl font-display font-semibold text-foreground">Search the Catalog</h3>
+              <p className="text-muted-foreground leading-relaxed">Browse thousands of titles with powerful filters and real-time availability. Find physical books by shelf or access digital resources instantly.</p>
+            </div>
+            <img src={scanImg} alt="Scanning book barcode" className="rounded-xl shadow-lg w-full h-64 object-cover md:order-2" />
+          </div>
+
+          {/* Step 3 — image left */}
+          <div className="grid md:grid-cols-2 gap-10 items-center max-w-5xl mx-auto">
+            <img src={heroImg} alt="Students in library" className="rounded-xl shadow-lg w-full h-64 object-cover" />
+            <div className="space-y-3">
+              <span className="text-4xl font-display font-bold text-primary/20">03</span>
+              <h3 className="text-xl font-display font-semibold text-foreground">Borrow or Access</h3>
+              <p className="text-muted-foreground leading-relaxed">Check out physical books with QR code scanning or instantly access digital resources from anywhere on any device.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -202,9 +182,13 @@ const Landing = () => {
               { title: "Dune", author: "Frank Herbert", status: "reserved", cover_color: "hsl(36,90%,50%)" },
             ]).map((book: any, i) => (
               <Card key={i} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                <div className="h-40 flex items-center justify-center" style={{ backgroundColor: book.cover_color || "hsl(210,60%,50%)" }}>
-                  <BookOpen className="w-12 h-12 text-white/40" />
-                </div>
+                {book.cover_image_url ? (
+                  <img src={book.cover_image_url} alt={book.title} className="h-40 w-full object-cover" />
+                ) : (
+                  <div className="h-40 flex items-center justify-center" style={{ backgroundColor: book.cover_color || "hsl(210,60%,50%)" }}>
+                    <BookOpen className="w-12 h-12 text-white/40" />
+                  </div>
+                )}
                 <CardContent className="p-4 space-y-2">
                   <h4 className="font-display font-semibold text-sm text-foreground line-clamp-1">{book.title}</h4>
                   <p className="text-xs text-muted-foreground">{book.author}</p>
