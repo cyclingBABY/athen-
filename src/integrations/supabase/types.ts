@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      book_copies: {
+        Row: {
+          book_id: string
+          condition: string | null
+          copy_id: string
+          copy_number: number
+          created_at: string
+          id: string
+          notes: string | null
+          qr_code_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          condition?: string | null
+          copy_id: string
+          copy_number?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          qr_code_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          condition?: string | null
+          copy_id?: string
+          copy_number?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          qr_code_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_copies_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           author: string
@@ -21,6 +68,7 @@ export type Database = {
           barcode: string | null
           category: string
           cover_color: string | null
+          cover_image_url: string | null
           created_at: string
           description: string | null
           digital_file_type: string | null
@@ -40,6 +88,7 @@ export type Database = {
           barcode?: string | null
           category?: string
           cover_color?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           digital_file_type?: string | null
@@ -59,6 +108,7 @@ export type Database = {
           barcode?: string | null
           category?: string
           cover_color?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           digital_file_type?: string | null
@@ -73,6 +123,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      borrow_records: {
+        Row: {
+          book_id: string
+          borrow_date: string
+          copy_id: string
+          created_at: string
+          due_date: string
+          id: string
+          renewed_count: number
+          return_date: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          borrow_date?: string
+          copy_id: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          renewed_count?: number
+          return_date?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          borrow_date?: string
+          copy_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          renewed_count?: number
+          return_date?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "borrow_records_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "borrow_records_copy_id_fkey"
+            columns: ["copy_id"]
+            isOneToOne: false
+            referencedRelation: "book_copies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       circulation_records: {
         Row: {
