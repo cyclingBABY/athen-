@@ -43,12 +43,22 @@ const PatronApproval = () => {
 
   const handleApprove = async (userId: string) => {
     setActionLoading(userId);
+    const user = users.find((u) => u.user_id === userId);
     const { error } = await supabase.from("profiles").update({ approved: true }).eq("user_id", userId);
     if (error) {
       toast({ title: "Approval failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Patron approved!", description: "They can now sign in to the system." });
       setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, approved: true } : u)));
+
+      // Send approval notification email
+      try {
+        await supabase.functions.invoke("send-approval-email", {
+          body: { email: user?.email, fullName: user?.full_name },
+        });
+      } catch (e) {
+        console.error("Failed to send approval email:", e);
+      }
     }
     setActionLoading(null);
   };
