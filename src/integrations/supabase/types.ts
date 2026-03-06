@@ -61,6 +61,45 @@ export type Database = {
           },
         ]
       }
+      book_recommendations: {
+        Row: {
+          admin_notes: string | null
+          author: string
+          created_at: string
+          id: string
+          isbn: string | null
+          lecturer_id: string
+          reason: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          author: string
+          created_at?: string
+          id?: string
+          isbn?: string | null
+          lecturer_id: string
+          reason?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          author?: string
+          created_at?: string
+          id?: string
+          isbn?: string | null
+          lecturer_id?: string
+          reason?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       books: {
         Row: {
           author: string
@@ -222,6 +261,39 @@ export type Database = {
           },
         ]
       }
+      course_reading_lists: {
+        Row: {
+          course_code: string | null
+          course_name: string
+          created_at: string
+          description: string | null
+          id: string
+          lecturer_id: string
+          semester: string | null
+          updated_at: string
+        }
+        Insert: {
+          course_code?: string | null
+          course_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          lecturer_id: string
+          semester?: string | null
+          updated_at?: string
+        }
+        Update: {
+          course_code?: string | null
+          course_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          lecturer_id?: string
+          semester?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fines: {
         Row: {
           amount: number
@@ -265,48 +337,99 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_expires_at: string | null
           address: string | null
           approved: boolean
           avatar_url: string | null
           created_at: string
+          department: string | null
           email: string | null
           full_name: string | null
           id: string
           phone: string | null
           photo_url: string | null
           registration_number: string | null
+          staff_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          account_expires_at?: string | null
           address?: string | null
           approved?: boolean
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
           photo_url?: string | null
           registration_number?: string | null
+          staff_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          account_expires_at?: string | null
           address?: string | null
           approved?: boolean
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
           photo_url?: string | null
           registration_number?: string | null
+          staff_id?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      reading_list_items: {
+        Row: {
+          book_id: string
+          created_at: string
+          id: string
+          is_required: boolean
+          notes: string | null
+          reading_list_id: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          notes?: string | null
+          reading_list_id: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          notes?: string | null
+          reading_list_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_list_items_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_list_items_reading_list_id_fkey"
+            columns: ["reading_list_id"]
+            isOneToOne: false
+            referencedRelation: "course_reading_lists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reservations: {
         Row: {
@@ -375,7 +498,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "patron"
+      app_role: "admin" | "patron" | "lecturer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -503,7 +626,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "patron"],
+      app_role: ["admin", "patron", "lecturer"],
     },
   },
 } as const
