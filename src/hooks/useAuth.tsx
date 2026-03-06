@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error fetching role:", error);
         setRole("patron");
       } else {
-        setRole((data?.role as "admin" | "patron") ?? "patron");
+        setRole((data?.role as "admin" | "patron" | "lecturer") ?? "patron");
       }
     } catch (e) {
       console.error("Role fetch exception:", e);
