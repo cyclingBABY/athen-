@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,19 +14,26 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, role, loading: authLoading } = useAuth();
+
+  // Redirect when already authenticated
+  useEffect(() => {
+    if (!authLoading && user && role) {
+      navigate(role === "admin" ? "/dashboard" : "/home", { replace: true });
+    }
+  }, [user, role, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (isLogin) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
-      } else if (data.user) {
-        const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).single();
-        navigate(roleData?.role === "admin" ? "/dashboard" : "/home");
+        setLoading(false);
       }
+      // Navigation handled by useEffect above once auth state updates
     } else {
       const { error } = await supabase.auth.signUp({
         email,
@@ -34,12 +42,12 @@ const Auth = () => {
       });
       if (error) {
         toast({ title: "Registration failed", description: error.message, variant: "destructive" });
+        setLoading(false);
       } else {
         toast({ title: "Account created!", description: `You are now logged in as ${accountType}.` });
-        navigate(accountType === "admin" ? "/dashboard" : "/home");
+        // Navigation handled by useEffect above
       }
     }
-    setLoading(false);
   };
 
   return (

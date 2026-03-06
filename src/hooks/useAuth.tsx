@@ -17,27 +17,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .limit(1)
-      .single();
-    setRole((data?.role as "admin" | "patron") ?? "patron");
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle();
+      if (error) {
+        console.error("Error fetching role:", error);
+        setRole("patron");
+      } else {
+        setRole((data?.role as "admin" | "patron") ?? "patron");
+      }
+    } catch (e) {
+      console.error("Role fetch exception:", e);
+      setRole("patron");
+    }
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        await fetchRole(u.id);
-      } else {
-        setRole(null);
-      }
-      setLoading(false);
-    });
-
+    // Get initial session first
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u);
@@ -45,6 +45,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await fetchRole(u.id);
       }
       setLoading(false);
+    });
+
+    // Then listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u) {
+        // Use setTimeout to avoid blocking the auth state change callback
+        setTimeout(async () => {
+          await fetchRole(u.id);
+        }, 0);
+      } else {
+        setRole(null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
