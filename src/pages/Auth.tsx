@@ -19,11 +19,12 @@ const Auth = () => {
     setLoading(true);
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
-      } else {
-        navigate("/dashboard");
+      } else if (data.user) {
+        const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).single();
+        navigate(roleData?.role === "admin" ? "/dashboard" : "/home");
       }
     } else {
       const { error } = await supabase.auth.signUp({
@@ -35,7 +36,7 @@ const Auth = () => {
         toast({ title: "Registration failed", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Account created!", description: `You are now logged in as ${accountType}.` });
-        navigate("/dashboard");
+        navigate(accountType === "admin" ? "/dashboard" : "/home");
       }
     }
     setLoading(false);
