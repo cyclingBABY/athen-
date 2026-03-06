@@ -1,23 +1,24 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, Plus, Loader2, Trash2, Mail } from "lucide-react";
+import { GraduationCap, Plus, Loader2, Mail, CheckCircle, XCircle, Clock } from "lucide-react";
 
 const LecturerManagement = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
   const [staffId, setStaffId] = useState("");
   const [creating, setCreating] = useState(false);
+  const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
 
-  const { data: lecturers, isLoading, refetch } = useQuery({
+  const { data: lecturers, isLoading } = useQuery({
     queryKey: ["admin-lecturers"],
     queryFn: async () => {
-      // Get all users with lecturer role
       const { data: roles } = await supabase
         .from("user_roles")
         .select("user_id")
@@ -33,35 +34,66 @@ const LecturerManagement = () => {
     },
   });
 
+  const approveMutation = useMutation({
+    mutationFn: async ({ userId, approve }: { userId: string; approve: boolean }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ approved: approve })
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { approve }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-lecturers"] });
+      toast({ title: approve ? "Lecturer approved" : "Lecturer rejected", description: approve ? "They can now sign in." : "Access has been revoked." });
+    },
+    onError: (e: any) => {
+      toast({ title: "Action failed", description: e.message, variant: "destructive" });
+    },
+  });
+
   const handleCreate = async () => {
     if (!email) return;
     setCreating(true);
     try {
-      // Use edge function to create lecturer account
       const { data, error } = await supabase.functions.invoke("create-lecturer", {
         body: { email, fullName, department, staffId },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
       toast({ title: "Lecturer account created", description: "An invitation email has been sent." });
       setShowForm(false);
       setEmail(""); setFullName(""); setDepartment(""); setStaffId("");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ["admin-lecturers"] });
     } catch (e: any) {
       toast({ title: "Failed to create lecturer", description: e.message, variant: "destructive" });
     }
     setCreating(false);
   };
 
+  const filtered = lecturers?.filter((l: any) => {
+    if (filter === "pending") return !l.approved;
+    if (filter === "approved") return l.approved;
+    return true;
+  });
+
+  const pendingCount = lecturers?.filter((l: any) => !l.approved).length ?? 0;
+
   const inputClass = "w-full px-3 py-2 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30";
 
   return (
-    <AdminLayout title="Lecturer Management" description="Create and manage lecturer accounts">
-      <div className="mb-6">
+    <AdminLayout title="Lecturer Management" description="Approve and manage lecturer accounts">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
         <button onClick={() => setShowForm(!showForm)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
           <Plus className="w-4 h-4" /> Add Lecturer
         </button>
+
+        <div className="flex bg-secondary rounded-lg p-1 text-sm">
+          {(["all", "pending", "approved"] as const).map((f) => (
+            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-md font-medium capitalize transition-colors ${filter === f ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              {f}{f === "pending" && pendingCount > 0 && <span className="ml-1.5 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
       {showForm && (
@@ -100,14 +132,16 @@ const LecturerManagement = () => {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      ) : !lecturers?.length ? (
+      ) : !filtered?.length ? (
         <div className="text-center py-20">
           <GraduationCap className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-muted-foreground">No lecturers yet. Add one to get started.</p>
+          <p className="text-muted-foreground">
+            {filter === "pending" ? "No pending approvals." : filter === "approved" ? "No approved lecturers yet." : "No lecturers yet. Add one to get started."}
+          </p>
         </div>
       ) : (
         <div className="grid gap-3">
-          {lecturers.map((l: any) => (
+          {filtered.map((l: any) => (
             <div key={l.id} className="bg-card border rounded-xl p-4 flex items-center gap-4">
               {l.photo_url ? (
                 <img src={l.photo_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-muted" />
@@ -119,12 +153,48 @@ const LecturerManagement = () => {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-foreground truncate">{l.full_name || "No name"}</h3>
                 <p className="text-sm text-muted-foreground">{l.email}</p>
-                <div className="flex gap-3 mt-1">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {l.department && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{l.department}</span>}
                   {l.staff_id && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground font-mono">{l.staff_id}</span>}
+                  {l.campus && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{l.campus}</span>}
+                  {l.library_card_number && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground font-mono">{l.library_card_number}</span>}
                 </div>
               </div>
-              <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium">Lecturer</span>
+
+              {l.approved ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> Approved
+                  </span>
+                  <button
+                    onClick={() => approveMutation.mutate({ userId: l.user_id, approve: false })}
+                    disabled={approveMutation.isPending}
+                    className="text-xs px-3 py-1.5 rounded-lg border text-destructive hover:bg-destructive/10 font-medium transition-colors"
+                  >
+                    Revoke
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-amber-500/10 text-amber-600 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> Pending
+                  </span>
+                  <button
+                    onClick={() => approveMutation.mutate({ userId: l.user_id, approve: true })}
+                    disabled={approveMutation.isPending}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => approveMutation.mutate({ userId: l.user_id, approve: false })}
+                    disabled={approveMutation.isPending}
+                    className="text-xs px-3 py-1.5 rounded-lg border text-destructive hover:bg-destructive/10 font-medium transition-colors"
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
