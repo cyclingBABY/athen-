@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import PatronSidebar from "@/components/PatronSidebar";
+import LibraryCard from "@/components/LibraryCard";
 import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
 
 const PatronProfile = () => {
   const { user } = useAuth();
@@ -58,29 +60,54 @@ const PatronProfile = () => {
       <main className="flex-1 p-6 overflow-auto">
         <h1 className="text-2xl font-display font-bold mb-6">My Profile</h1>
 
-        <div className="bg-card rounded-xl border p-6 max-w-lg">
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Email</label>
-              <input type="email" value={profile?.email || ""} disabled className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted cursor-not-allowed" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Profile Form */}
+          <div className="bg-card rounded-xl border p-6">
+            <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
+            <form onSubmit={handleSave} className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Email</label>
+                <input type="email" value={profile?.email || ""} disabled className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted cursor-not-allowed" />
+              </div>
+              {(profile as any)?.registration_number && (
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Registration Number</label>
+                  <input type="text" value={(profile as any).registration_number} disabled className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted cursor-not-allowed" />
+                </div>
+              )}
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Full Name</label>
+                <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Phone</label>
+                <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Address</label>
+                <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={3} className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
+              </div>
+              <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2">
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                Save Changes
+              </button>
+            </form>
+          </div>
+
+          {/* Library Card */}
+          {profile?.approved && (
+            <div className="bg-card rounded-xl border p-6">
+              <h2 className="text-lg font-semibold mb-4">My Library Card</h2>
+              <LibraryCard
+                fullName={profile.full_name || "Member"}
+                registrationNumber={(profile as any).registration_number || "N/A"}
+                email={profile.email || ""}
+                photoUrl={(profile as any).photo_url || null}
+                memberId={profile.id?.slice(0, 8).toUpperCase() || ""}
+                memberSince={profile.created_at ? format(new Date(profile.created_at), "MMM yyyy") : ""}
+              />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Full Name</label>
-              <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Phone</label>
-              <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Address</label>
-              <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={3} className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
-            </div>
-            <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2">
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              Save Changes
-            </button>
-          </form>
+          )}
         </div>
       </main>
     </div>
