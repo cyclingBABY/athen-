@@ -182,9 +182,13 @@ const Landing = () => {
               { title: "Dune", author: "Frank Herbert", status: "reserved", cover_color: "hsl(36,90%,50%)" },
             ]).map((book: any, i) => (
               <Card key={i} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                <div className="h-40 flex items-center justify-center" style={{ backgroundColor: book.cover_color || "hsl(210,60%,50%)" }}>
-                  <BookOpen className="w-12 h-12 text-white/40" />
-                </div>
+                {book.cover_image_url ? (
+                  <img src={book.cover_image_url} alt={book.title} className="h-40 w-full object-cover" />
+                ) : (
+                  <div className="h-40 flex items-center justify-center" style={{ backgroundColor: book.cover_color || "hsl(210,60%,50%)" }}>
+                    <BookOpen className="w-12 h-12 text-white/40" />
+                  </div>
+                )}
                 <CardContent className="p-4 space-y-2">
                   <h4 className="font-display font-semibold text-sm text-foreground line-clamp-1">{book.title}</h4>
                   <p className="text-xs text-muted-foreground">{book.author}</p>
