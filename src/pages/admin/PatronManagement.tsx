@@ -67,7 +67,7 @@ const PatronManagement = () => {
 
   const changeRoleMutation = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
-      const { error } = await supabase.from("user_roles").update({ role: newRole }).eq("user_id", userId);
+      const { error } = await supabase.from("user_roles").update({ role: newRole as "admin" | "patron" }).eq("user_id", userId);
       if (error) throw error;
     },
     onSuccess: () => {
