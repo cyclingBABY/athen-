@@ -36,7 +36,7 @@ const Auth = () => {
         toast({ title: "Registration failed", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Account created!", description: `You are now logged in as ${accountType}.` });
-        navigate("/dashboard");
+        navigate(accountType === "admin" ? "/dashboard" : "/home");
       }
     }
     setLoading(false);
