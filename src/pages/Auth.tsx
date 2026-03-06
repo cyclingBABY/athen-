@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Loader2, ArrowLeft, Camera, Upload } from "lucide-react";
+import { BookOpen, Loader2, ArrowLeft, Camera, Upload, Eye, EyeOff } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
