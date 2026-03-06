@@ -32,6 +32,18 @@ import Reporting from "./pages/admin/Reporting";
 import BulkImport from "./pages/admin/BulkImport";
 import QRScanner from "./pages/admin/QRScanner";
 import PatronApproval from "./pages/admin/PatronApproval";
+import LecturerManagement from "./pages/admin/LecturerManagement";
+
+// Lecturer pages
+import LecturerDashboard from "./pages/lecturer/LecturerDashboard";
+import LecturerMyBooks from "./pages/lecturer/LecturerMyBooks";
+import LecturerReadingLists from "./pages/lecturer/LecturerReadingLists";
+import LecturerUpload from "./pages/lecturer/LecturerUpload";
+import LecturerRecommendations from "./pages/lecturer/LecturerRecommendations";
+import LecturerRequests from "./pages/lecturer/LecturerRequests";
+import LecturerDigitalLibrary from "./pages/lecturer/LecturerDigitalLibrary";
+import LecturerNotifications from "./pages/lecturer/LecturerNotifications";
+import LecturerProfile from "./pages/lecturer/LecturerProfile";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +67,7 @@ const App = () => (
             <Route path="/admin/circulation" element={<ProtectedRoute requiredRole="admin"><Circulation /></ProtectedRoute>} />
             <Route path="/admin/patrons" element={<ProtectedRoute requiredRole="admin"><PatronManagement /></ProtectedRoute>} />
             <Route path="/admin/approvals" element={<ProtectedRoute requiredRole="admin"><PatronApproval /></ProtectedRoute>} />
+            <Route path="/admin/lecturers" element={<ProtectedRoute requiredRole="admin"><LecturerManagement /></ProtectedRoute>} />
             <Route path="/admin/inventory" element={<ProtectedRoute requiredRole="admin"><Inventory /></ProtectedRoute>} />
             <Route path="/admin/holds" element={<ProtectedRoute requiredRole="admin"><HoldManagement /></ProtectedRoute>} />
             <Route path="/admin/fines" element={<ProtectedRoute requiredRole="admin"><FineProcessing /></ProtectedRoute>} />
@@ -63,6 +76,17 @@ const App = () => (
             <Route path="/admin/reporting" element={<ProtectedRoute requiredRole="admin"><Reporting /></ProtectedRoute>} />
             <Route path="/admin/bulk-import" element={<ProtectedRoute requiredRole="admin"><BulkImport /></ProtectedRoute>} />
             <Route path="/admin/qr-scanner" element={<ProtectedRoute requiredRole="admin"><QRScanner /></ProtectedRoute>} />
+
+            {/* Lecturer routes */}
+            <Route path="/lecturer/dashboard" element={<ProtectedRoute requiredRole="lecturer"><LecturerDashboard /></ProtectedRoute>} />
+            <Route path="/lecturer/my-books" element={<ProtectedRoute requiredRole="lecturer"><LecturerMyBooks /></ProtectedRoute>} />
+            <Route path="/lecturer/reading-lists" element={<ProtectedRoute requiredRole="lecturer"><LecturerReadingLists /></ProtectedRoute>} />
+            <Route path="/lecturer/upload" element={<ProtectedRoute requiredRole="lecturer"><LecturerUpload /></ProtectedRoute>} />
+            <Route path="/lecturer/recommendations" element={<ProtectedRoute requiredRole="lecturer"><LecturerRecommendations /></ProtectedRoute>} />
+            <Route path="/lecturer/requests" element={<ProtectedRoute requiredRole="lecturer"><LecturerRequests /></ProtectedRoute>} />
+            <Route path="/lecturer/digital-library" element={<ProtectedRoute requiredRole="lecturer"><LecturerDigitalLibrary /></ProtectedRoute>} />
+            <Route path="/lecturer/notifications" element={<ProtectedRoute requiredRole="lecturer"><LecturerNotifications /></ProtectedRoute>} />
+            <Route path="/lecturer/profile" element={<ProtectedRoute requiredRole="lecturer"><LecturerProfile /></ProtectedRoute>} />
 
             {/* Patron routes */}
             <Route path="/home" element={<ProtectedRoute><PatronHome /></ProtectedRoute>} />

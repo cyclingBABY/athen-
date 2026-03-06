@@ -4,7 +4,7 @@ import type { User } from "@supabase/supabase-js";
 
 interface AuthContext {
   user: User | null;
-  role: "admin" | "patron" | null;
+  role: "admin" | "patron" | "lecturer" | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -13,7 +13,7 @@ const AuthCtx = createContext<AuthContext>({ user: null, role: null, loading: tr
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<"admin" | "patron" | null>(null);
+  const [role, setRole] = useState<"admin" | "patron" | "lecturer" | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchRole = async (userId: string) => {
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error fetching role:", error);
         setRole("patron");
       } else {
-        setRole((data?.role as "admin" | "patron") ?? "patron");
+        setRole((data?.role as "admin" | "patron" | "lecturer") ?? "patron");
       }
     } catch (e) {
       console.error("Role fetch exception:", e);

@@ -23,7 +23,9 @@ const Auth = () => {
 
   useEffect(() => {
     if (!authLoading && user && role) {
-      navigate(role === "admin" ? "/dashboard" : "/home", { replace: true });
+      if (role === "admin") navigate("/dashboard", { replace: true });
+      else if (role === "lecturer") navigate("/lecturer/dashboard", { replace: true });
+      else navigate("/home", { replace: true });
     }
   }, [user, role, authLoading, navigate]);
 

@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, ArrowRightLeft, ClipboardList, Shield, Trash2, FileSpreadsheet, ScanLine, UserCheck } from "lucide-react";
+import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, ArrowRightLeft, ClipboardList, Shield, Trash2, FileSpreadsheet, ScanLine, UserCheck, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -11,6 +11,7 @@ const navItems = [
   { icon: ArrowRightLeft, label: "Circulation", path: "/admin/circulation" },
   { icon: UserCheck, label: "Approvals", path: "/admin/approvals" },
   { icon: Users, label: "Patrons", path: "/admin/patrons" },
+  { icon: GraduationCap, label: "Lecturers", path: "/admin/lecturers" },
   { icon: ClipboardList, label: "Inventory", path: "/admin/inventory" },
   { icon: CalendarClock, label: "Holds", path: "/admin/holds" },
   { icon: DollarSign, label: "Fines & Fees", path: "/admin/fines" },
