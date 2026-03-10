@@ -19,6 +19,7 @@ const PatronCatalog = () => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [categories, setCategories] = useState<string[]>(["All"]);
+  const [selectedBook, setSelectedBook] = useState<any>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
