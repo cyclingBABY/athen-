@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import LecturerLayout from "@/components/LecturerLayout";
-import { Library, Download } from "lucide-react";
+import DocumentViewer from "@/components/DocumentViewer";
+import { Library, Eye, Download, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const LecturerDigitalLibrary = () => {
+  const [selectedBook, setSelectedBook] = useState<any>(null);
+
   const { data: digitalBooks, isLoading } = useQuery({
     queryKey: ["digital-books"],
     queryFn: async () => {
@@ -16,8 +22,22 @@ const LecturerDigitalLibrary = () => {
     },
   });
 
+  const { data: commentCounts } = useQuery({
+    queryKey: ["document-comment-counts"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("document_comments")
+        .select("book_id");
+      const counts: Record<string, number> = {};
+      (data || []).forEach((c: any) => {
+        counts[c.book_id] = (counts[c.book_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
   return (
-    <LecturerLayout title="Digital Library" description="Browse and access digital resources">
+    <LecturerLayout title="Digital Library" description="Browse, preview, and discuss digital resources">
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -30,19 +50,48 @@ const LecturerDigitalLibrary = () => {
       ) : (
         <div className="grid gap-3">
           {digitalBooks.map((book: any) => (
-            <div key={book.id} className="bg-card border rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-foreground">{book.title}</p>
+            <div key={book.id} className="bg-card border rounded-xl p-4 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-semibold text-foreground truncate">{book.title}</p>
                 <p className="text-sm text-muted-foreground">{book.author}</p>
-                <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground mt-1 inline-block">{book.digital_file_type?.toUpperCase()}</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="secondary" className="text-xs">
+                    {book.digital_file_type?.toUpperCase() || "FILE"}
+                  </Badge>
+                  {(commentCounts?.[book.id] || 0) > 0 && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MessageSquare className="w-3 h-3" />
+                      {commentCounts[book.id]}
+                    </span>
+                  )}
+                </div>
               </div>
-              <a href={book.digital_file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
-                <Download className="w-4 h-4" /> Open
-              </a>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedBook(book)}
+                >
+                  <Eye className="w-4 h-4 mr-1.5" /> View
+                </Button>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => window.open(book.digital_file_url, "_blank")}
+                >
+                  <Download className="w-4 h-4 mr-1.5" /> Download
+                </Button>
+              </div>
             </div>
           ))}
         </div>
       )}
+
+      <DocumentViewer
+        book={selectedBook}
+        open={!!selectedBook}
+        onOpenChange={(open) => { if (!open) setSelectedBook(null); }}
+      />
     </LecturerLayout>
   );
 };
