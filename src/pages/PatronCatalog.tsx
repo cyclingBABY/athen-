@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BookOpen } from "lucide-react";
+import { Search, BookOpen, Eye, Download, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import DocumentViewer from "@/components/DocumentViewer";
 import { useToast } from "@/hooks/use-toast";
 import PatronSidebar from "@/components/PatronSidebar";
 
