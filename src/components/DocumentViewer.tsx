@@ -144,11 +144,20 @@ const DocumentViewer = ({ book, open, onOpenChange }: DocumentViewerProps) => {
           {showPreview && (
             <div className="rounded-lg border bg-muted/30 overflow-hidden" style={{ minHeight: 300 }}>
               {isPdf && book.digital_file_url ? (
-                <iframe
-                  src={book.digital_file_url}
+                <object
+                  data={book.digital_file_url}
+                  type="application/pdf"
                   className="w-full h-[400px] border-0"
                   title={`Preview: ${book.title}`}
-                />
+                >
+                  <div className="flex flex-col items-center justify-center py-12 gap-3">
+                    <FileText className="w-16 h-16 text-primary/40" />
+                    <p className="text-muted-foreground text-sm">PDF preview could not load in this browser.</p>
+                    <Button size="sm" variant="outline" onClick={() => window.open(book.digital_file_url!, "_blank")}>
+                      <Eye className="w-4 h-4 mr-1.5" /> Open in new tab
+                    </Button>
+                  </div>
+                </object>
               ) : isAudio && book.digital_file_url ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-4">
                   <Headphones className="w-16 h-16 text-primary/40" />
