@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BookOpen } from "lucide-react";
+import { Search, BookOpen, Eye, Download, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import DocumentViewer from "@/components/DocumentViewer";
 import { useToast } from "@/hooks/use-toast";
 import PatronSidebar from "@/components/PatronSidebar";
 
@@ -17,6 +19,7 @@ const PatronCatalog = () => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [categories, setCategories] = useState<string[]>(["All"]);
+  const [selectedBook, setSelectedBook] = useState<any>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -100,18 +103,46 @@ const PatronCatalog = () => {
                   <Badge variant="outline" className={`text-xs capitalize ${statusStyles[book.status] || ""}`}>
                     {book.status.replace("-", " ")}
                   </Badge>
-                  {book.available_copies > 0 ? (
-                    <button onClick={() => handleReserve(book.id)} className="text-xs font-medium text-primary hover:underline">
-                      Reserve
-                    </button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">{book.available_copies} copies left</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {book.digital_file_url && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs px-2"
+                          onClick={() => setSelectedBook(book)}
+                        >
+                          <Eye className="w-3 h-3 mr-1" /> View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs px-2"
+                          onClick={() => window.open(book.digital_file_url, "_blank")}
+                        >
+                          <Download className="w-3 h-3 mr-1" /> Download
+                        </Button>
+                      </>
+                    )}
+                    {book.available_copies > 0 ? (
+                      <button onClick={() => handleReserve(book.id)} className="text-xs font-medium text-primary hover:underline">
+                        Reserve
+                      </button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{book.available_copies} copies left</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        <DocumentViewer
+          book={selectedBook}
+          open={!!selectedBook}
+          onOpenChange={(open) => { if (!open) setSelectedBook(null); }}
+        />
       </main>
     </div>
   );
