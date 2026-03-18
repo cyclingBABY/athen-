@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import PatronSidebar from "@/components/PatronSidebar";
 import LibraryIDCard from "@/components/LibraryIDCard";
+import ProfilePhotoUpload from "@/components/ProfilePhotoUpload";
 import { Loader2 } from "lucide-react";
 
 const PatronProfile = () => {
@@ -16,17 +17,20 @@ const PatronProfile = () => {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
 
-  useEffect(() => {
+  const fetchProfile = async () => {
     if (!user) return;
-    supabase.from("profiles").select("*").eq("user_id", user.id).single().then(({ data }) => {
-      if (data) {
-        setProfile(data);
-        setFullName(data.full_name || "");
-        setPhone(data.phone || "");
-        setAddress(data.address || "");
-      }
-      setLoading(false);
-    });
+    const { data } = await supabase.from("profiles").select("*").eq("user_id", user.id).single();
+    if (data) {
+      setProfile(data);
+      setFullName(data.full_name || "");
+      setPhone(data.phone || "");
+      setAddress(data.address || "");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProfile();
   }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -60,9 +64,21 @@ const PatronProfile = () => {
         <h1 className="text-2xl font-display font-bold mb-6">My Profile</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Profile Form */}
           <div className="bg-card rounded-xl border p-6">
             <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
+
+            <div className="flex items-center gap-4 mb-6">
+              <ProfilePhotoUpload
+                userId={user!.id}
+                currentPhotoUrl={profile?.photo_url || null}
+                onPhotoUpdated={() => fetchProfile()}
+              />
+              <div>
+                <h3 className="font-semibold text-foreground">{profile?.full_name || "Member"}</h3>
+                <p className="text-sm text-muted-foreground">{profile?.email}</p>
+              </div>
+            </div>
+
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Email</label>
@@ -99,7 +115,6 @@ const PatronProfile = () => {
             </form>
           </div>
 
-          {/* Printable Library ID Card */}
           {profile?.approved && (
             <div className="bg-card rounded-xl border p-6">
               <h2 className="text-lg font-semibold mb-4">My Library ID Card</h2>

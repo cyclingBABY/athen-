@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import LecturerLayout from "@/components/LecturerLayout";
 import LibraryIDCard from "@/components/LibraryIDCard";
-import { User, Loader2 } from "lucide-react";
+import ProfilePhotoUpload from "@/components/ProfilePhotoUpload";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const LecturerProfile = () => {
@@ -34,8 +35,8 @@ const LecturerProfile = () => {
     if (profile) {
       setFullName(profile.full_name || "");
       setPhone(profile.phone || "");
-      setDepartment((profile as any).department || "");
-      setCampus((profile as any).campus || "");
+      setDepartment(profile.department || "");
+      setCampus(profile.campus || "");
       setAddress(profile.address || "");
     }
   }, [profile]);
@@ -44,7 +45,7 @@ const LecturerProfile = () => {
     mutationFn: async () => {
       const { error } = await supabase
         .from("profiles")
-        .update({ full_name: fullName, phone, department, campus, address } as any)
+        .update({ full_name: fullName, phone, department, campus, address })
         .eq("user_id", user!.id);
       if (error) throw error;
     },
@@ -70,22 +71,19 @@ const LecturerProfile = () => {
   return (
     <LecturerLayout title="Profile" description="Manage your personal information">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Profile Form */}
         <div className="bg-card border rounded-xl p-6 space-y-4">
           <h2 className="text-lg font-semibold">Personal Information</h2>
           <div className="flex items-center gap-4 mb-4">
-            {profile?.photo_url ? (
-              <img src={profile.photo_url} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-muted" />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                <User className="w-8 h-8 text-muted-foreground" />
-              </div>
-            )}
+            <ProfilePhotoUpload
+              userId={user!.id}
+              currentPhotoUrl={profile?.photo_url || null}
+              onPhotoUpdated={() => queryClient.invalidateQueries({ queryKey: ["lecturer-profile-full"] })}
+            />
             <div>
               <h3 className="font-semibold text-foreground">{profile?.full_name || "Lecturer"}</h3>
               <p className="text-sm text-muted-foreground">{profile?.email}</p>
-              {(profile as any)?.library_card_number && (
-                <p className="text-xs text-primary font-mono font-semibold mt-0.5">{(profile as any).library_card_number}</p>
+              {profile?.library_card_number && (
+                <p className="text-xs text-primary font-mono font-semibold mt-0.5">{profile.library_card_number}</p>
               )}
             </div>
           </div>
@@ -123,18 +121,17 @@ const LecturerProfile = () => {
           </button>
         </div>
 
-        {/* Printable Library ID Card */}
         {profile?.approved && (
           <div className="bg-card border rounded-xl p-6">
             <h2 className="text-lg font-semibold mb-4">My Library ID Card</h2>
             <LibraryIDCard
               fullName={profile.full_name || "Lecturer"}
               email={profile.email || ""}
-              cardNumber={(profile as any).library_card_number || ""}
+              cardNumber={profile.library_card_number || ""}
               role="lecturer"
               photoUrl={profile.photo_url}
-              department={(profile as any).department}
-              campus={(profile as any).campus}
+              department={profile.department}
+              campus={profile.campus}
             />
           </div>
         )}
