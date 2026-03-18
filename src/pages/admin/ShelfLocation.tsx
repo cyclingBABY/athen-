@@ -68,7 +68,7 @@ const ShelfLocation = () => {
   const filtered = books?.filter(b => b.title.toLowerCase().includes(search.toLowerCase()) || b.author.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <AdminLayout title="Shelf Location Assignment" description="Assign and manage physical shelf locations for catalog items">
+    <AdminLayout title="Shelf Location Assignment" description="Assign and manage physical shelf locations for physical catalog items (digital-only books are excluded)">
       <div className="flex items-center justify-between gap-4 mb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
