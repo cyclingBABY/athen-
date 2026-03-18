@@ -27,7 +27,12 @@ const ShelfLocation = () => {
   const { data: books, isLoading } = useQuery({
     queryKey: ["admin-books-shelf"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("books").select("id, title, author, category, status, shelf_location").order("category").order("title");
+      const { data, error } = await supabase
+        .from("books")
+        .select("id, title, author, category, status, shelf_location, digital_file_url")
+        .is("digital_file_url", null)
+        .order("category")
+        .order("title");
       if (error) throw error;
       return data;
     },
