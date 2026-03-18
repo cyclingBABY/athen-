@@ -21,6 +21,7 @@ const navItems = [
   { icon: FileSpreadsheet, label: "Bulk Import", path: "/admin/bulk-import" },
   { icon: ScanLine, label: "QR Scanner", path: "/admin/qr-scanner" },
   { icon: ScanLine, label: "Barcode Station", path: "/admin/barcode-station" },
+  { icon: BookOpen, label: "Physical Scanner", path: "/admin/physical-scanner" },
 ];
 
 const AppSidebar = () => {
