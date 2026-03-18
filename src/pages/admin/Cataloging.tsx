@@ -179,7 +179,7 @@ const Cataloging = () => {
 
   const openAdd = () => {
     setEditingBook(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, barcode: generateBarcode() });
     setBookType("physical");
     setCoverFile(null);
     setCoverPreview(null);
