@@ -207,8 +207,8 @@ const QRScanner = () => {
 
             {action === "issue" && (
               <div>
-                <Label>Patron Email</Label>
-                <Input value={patronEmail} onChange={e => setPatronEmail(e.target.value)} placeholder="patron@example.com" />
+                <Label>User Email</Label>
+                <Input value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="user@example.com" />
               </div>
             )}
           </CardContent>
