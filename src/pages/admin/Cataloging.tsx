@@ -454,6 +454,8 @@ const Cataloging = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+      </Tabs>
     </AdminLayout>
   );
 };
