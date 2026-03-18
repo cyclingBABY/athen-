@@ -107,7 +107,7 @@ const QRScanner = () => {
       setScannedCopy(null);
       setScannedBook(null);
       setCopyIdInput("");
-      setPatronEmail("");
+      setUserEmail("");
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
