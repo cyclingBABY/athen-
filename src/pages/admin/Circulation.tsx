@@ -44,8 +44,8 @@ const Circulation = () => {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       // Find patron by email
-      const { data: profile } = await supabase.from("profiles").select("user_id").eq("email", patronEmail).maybeSingle();
-      if (!profile) throw new Error("Patron not found with that email");
+      const { data: profile } = await supabase.from("profiles").select("user_id").eq("email", userEmail).maybeSingle();
+      if (!profile) throw new Error("User not found with that email");
       
       const { error } = await supabase.from("circulation_records").insert({
         book_id: selectedBook,
