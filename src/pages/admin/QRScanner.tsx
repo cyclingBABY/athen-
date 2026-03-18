@@ -79,11 +79,11 @@ const QRScanner = () => {
   }, []);
 
   const issueBook = async () => {
-    if (!scannedCopy || !patronEmail) return;
+    if (!scannedCopy || !userEmail) return;
     setProcessing(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("user_id").eq("email", patronEmail).maybeSingle();
-      if (!profile) throw new Error("Patron not found with that email");
+      const { data: profile } = await supabase.from("profiles").select("user_id").eq("email", userEmail).maybeSingle();
+      if (!profile) throw new Error("User not found with that email");
 
       await supabase.from("borrow_records" as any).insert({
         copy_id: scannedCopy.id,
