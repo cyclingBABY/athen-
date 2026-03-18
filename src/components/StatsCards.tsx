@@ -10,14 +10,24 @@ const StatsCards = () => {
       const [booksRes, checkedOutRes, patronsRes, overdueRes] = await Promise.all([
         supabase.from("books").select("total_copies"),
         supabase.from("circulation_records").select("id").eq("status", "checked-out"),
-        supabase.from("profiles").select("id"),
+        supabase.from("profiles").select("id").eq("approved", true),
         supabase.from("circulation_records").select("id").eq("status", "overdue"),
       ]);
+
+      // Also check for overdue by due_date for checked-out items past due
+      const { data: pastDueRecords } = await supabase
+        .from("circulation_records")
+        .select("id")
+        .eq("status", "checked-out")
+        .lt("due_date", new Date().toISOString());
+
+      const overdueCount = (overdueRes.data?.length || 0) + (pastDueRecords?.length || 0);
+
       setStats({
         totalBooks: booksRes.data?.reduce((sum, b) => sum + (b.total_copies || 0), 0) || 0,
         checkedOut: checkedOutRes.data?.length || 0,
         activePatrons: patronsRes.data?.length || 0,
-        overdueItems: overdueRes.data?.length || 0,
+        overdueItems: overdueCount,
       });
     };
     fetchStats();
@@ -32,7 +42,7 @@ const StatsCards = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map(({ label, value, icon: Icon, color }, i) => (
+      {cards.map(({ label, value, icon: Icon, color }) => (
         <div key={label} className="bg-card rounded-xl border p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-muted-foreground">{label}</span>
