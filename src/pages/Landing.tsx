@@ -25,7 +25,7 @@ const features = [
   { icon: Users, title: "Member Management", desc: "Register and manage students, staff, and faculty with role-based access controls.", img: featMembers },
   { icon: BookMarked, title: "Borrow & Return Tracking", desc: "Real-time tracking of due dates, renewals, and overdue notifications.", img: featBorrow },
   { icon: Download, title: "Digital Library", desc: "Upload and manage ebooks, PDFs, and audiobooks with secure digital lending.", img: featDigital },
-  { icon: BarChart3, title: "Analytics Dashboard", desc: "Comprehensive reports on circulation trends, popular titles, and patron activity.", img: featAnalytics },
+  { icon: BarChart3, title: "Analytics Dashboard", desc: "Comprehensive reports on circulation trends, popular titles, and user activity.", img: featAnalytics },
 ];
 
 const steps = [
