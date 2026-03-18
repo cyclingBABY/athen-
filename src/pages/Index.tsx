@@ -5,6 +5,7 @@ import HeroBanner from "@/components/HeroBanner";
 import StatsCards from "@/components/StatsCards";
 import BookCatalog from "@/components/BookCatalog";
 import RecentActivity from "@/components/RecentActivity";
+import ContinueReadingShelf from "@/components/ContinueReadingShelf";
 
 const Index = () => {
   const { role } = useAuth();
@@ -19,6 +20,12 @@ const Index = () => {
       <main className="flex-1 p-6 overflow-auto">
         <HeroBanner />
         <StatsCards />
+
+        {/* Continue Reading shelf for admin too */}
+        <div className="mt-6">
+          <ContinueReadingShelf myBooksLink="/admin/circulation" />
+        </div>
+
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
           <div className="xl:col-span-2">
             <BookCatalog />

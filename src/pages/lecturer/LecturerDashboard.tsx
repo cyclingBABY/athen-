@@ -2,9 +2,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import LecturerSidebar from "@/components/LecturerSidebar";
-import { BookCopy, ListChecks, Star, Bell, ArrowRight, Clock } from "lucide-react";
+import ContinueReadingShelf from "@/components/ContinueReadingShelf";
+import { BookCopy, ListChecks, Star, Bell, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { format } from "date-fns";
 
 const LecturerDashboard = () => {
   const { user } = useAuth();
@@ -12,11 +12,7 @@ const LecturerDashboard = () => {
   const { data: profile } = useQuery({
     queryKey: ["lecturer-profile", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name, department, staff_id")
-        .eq("user_id", user!.id)
-        .single();
+      const { data } = await supabase.from("profiles").select("full_name, department, staff_id").eq("user_id", user!.id).single();
       return data;
     },
     enabled: !!user,
@@ -25,11 +21,7 @@ const LecturerDashboard = () => {
   const { data: activeLoans } = useQuery({
     queryKey: ["lecturer-loans", user?.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("circulation_records")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user!.id)
-        .eq("status", "checked-out");
+      const { count } = await supabase.from("circulation_records").select("*", { count: "exact", head: true }).eq("user_id", user!.id).eq("status", "checked-out");
       return count ?? 0;
     },
     enabled: !!user,
@@ -38,10 +30,7 @@ const LecturerDashboard = () => {
   const { data: readingListCount } = useQuery({
     queryKey: ["lecturer-reading-lists-count", user?.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("course_reading_lists")
-        .select("*", { count: "exact", head: true })
-        .eq("lecturer_id", user!.id);
+      const { count } = await supabase.from("course_reading_lists").select("*", { count: "exact", head: true }).eq("lecturer_id", user!.id);
       return count ?? 0;
     },
     enabled: !!user,
@@ -50,26 +39,8 @@ const LecturerDashboard = () => {
   const { data: recommendationCount } = useQuery({
     queryKey: ["lecturer-recommendations-count", user?.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("book_recommendations")
-        .select("*", { count: "exact", head: true })
-        .eq("lecturer_id", user!.id);
+      const { count } = await supabase.from("book_recommendations").select("*", { count: "exact", head: true }).eq("lecturer_id", user!.id);
       return count ?? 0;
-    },
-    enabled: !!user,
-  });
-
-  const { data: dueSoon } = useQuery({
-    queryKey: ["lecturer-due-soon", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("circulation_records")
-        .select("id, due_date, book_id, books(title, author)")
-        .eq("user_id", user!.id)
-        .eq("status", "checked-out")
-        .order("due_date", { ascending: true })
-        .limit(3);
-      return data ?? [];
     },
     enabled: !!user,
   });
@@ -116,35 +87,8 @@ const LecturerDashboard = () => {
           ))}
         </div>
 
-        <div className="bg-card border rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-display font-semibold text-foreground flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" /> Due Soon
-            </h2>
-            <Link to="/lecturer/my-books" className="text-sm text-primary hover:underline font-medium">View all</Link>
-          </div>
-          {dueSoon && dueSoon.length > 0 ? (
-            <div className="space-y-3">
-              {dueSoon.map((record: any) => {
-                const dueDate = new Date(record.due_date);
-                const isOverdue = dueDate < new Date();
-                return (
-                  <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-foreground truncate">{record.books?.title}</p>
-                      <p className="text-sm text-muted-foreground">{record.books?.author}</p>
-                    </div>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ml-3 ${isOverdue ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
-                      {isOverdue ? "Overdue" : `Due ${format(dueDate, "MMM d")}`}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm py-4 text-center">No books currently checked out.</p>
-          )}
-        </div>
+        {/* Continue Reading Shelf */}
+        <ContinueReadingShelf myBooksLink="/lecturer/my-books" />
       </main>
     </div>
   );
