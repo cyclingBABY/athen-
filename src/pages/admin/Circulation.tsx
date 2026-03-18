@@ -70,7 +70,7 @@ const Circulation = () => {
       toast({ title: "Book checked out successfully" });
       setCheckoutOpen(false);
       setSelectedBook("");
-      setPatronEmail("");
+      setUserEmail("");
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
