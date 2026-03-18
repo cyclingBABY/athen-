@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { BookPlus, Upload, Loader2 } from "lucide-react";
+import { BookPlus, Upload, Loader2, Barcode, RefreshCw } from "lucide-react";
 
 interface BookEntryFormProps {
   isbn: string;
@@ -16,6 +17,13 @@ interface BookEntryFormProps {
 }
 
 const CATEGORIES = ["General", "Fiction", "Non-Fiction", "Science", "Technology", "History", "Art", "Education", "Medical", "Law", "Reference"];
+
+const generateBarcode = () => {
+  const prefix = "LIB";
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${timestamp}-${random}`;
+};
 
 const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) => {
   const [title, setTitle] = useState("");
@@ -26,21 +34,23 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [duplicate, setDuplicate] = useState<any>(null);
+  const [barcodeMode, setBarcodeMode] = useState<"auto" | "manual">("auto");
+  const [manualBarcode, setManualBarcode] = useState("");
+  const [generatedBarcode, setGeneratedBarcode] = useState(generateBarcode());
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const checkDuplicate = async () => {
-    let query = supabase.from("books").select("id, title, author, isbn, total_copies");
+  const currentBarcode = barcodeMode === "auto" ? generatedBarcode : manualBarcode;
 
+  const checkDuplicate = async () => {
     if (isbn) {
-      const { data } = await query.eq("isbn", isbn).limit(1);
+      const { data } = await supabase.from("books").select("id, title, author, isbn, total_copies").eq("isbn", isbn).limit(1);
       if (data && data.length > 0) return data[0];
     }
-
     if (title) {
       const { data } = await supabase.from("books").select("id, title, author, isbn, total_copies").ilike("title", title).limit(1);
       if (data && data.length > 0) return data[0];
     }
-
     return null;
   };
 
@@ -59,6 +69,10 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
       toast({ title: "Title and Author are required", variant: "destructive" });
       return;
     }
+    if (!currentBarcode) {
+      toast({ title: "Barcode is required", variant: "destructive" });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -69,7 +83,6 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
         return;
       }
 
-      // Check for duplicates first
       const dup = await checkDuplicate();
       if (dup) {
         setDuplicate(dup);
@@ -77,15 +90,16 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
         return;
       }
 
-      // Create new book
       const { data: newBook, error } = await supabase.from("books").insert({
-        title, author, isbn: isbn || null, description: description || null,
+        title, author,
+        isbn: isbn || null,
+        barcode: currentBarcode,
+        description: description || null,
         category, shelf_location: shelfLocation || null,
       }).select("id, title").single();
 
       if (error) throw error;
 
-      // Upload cover if provided
       if (coverFile && newBook) {
         const coverUrl = await uploadCover(newBook.id);
         if (coverUrl) {
@@ -105,6 +119,7 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
   const resetForm = () => {
     setTitle(""); setAuthor(""); setDescription(""); setCategory("General");
     setShelfLocation(""); setCoverFile(null); onIsbnChange(""); setDuplicate(null);
+    setManualBarcode(""); setGeneratedBarcode(generateBarcode());
   };
 
   return (
@@ -128,6 +143,44 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
           </div>
         )}
 
+        {/* Barcode Section */}
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Barcode className="w-5 h-5 text-primary" />
+              <Label className="text-sm font-semibold">Book Barcode</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{barcodeMode === "auto" ? "Auto-generated" : "Manual / Scanner"}</span>
+              <Switch
+                checked={barcodeMode === "manual"}
+                onCheckedChange={(checked) => setBarcodeMode(checked ? "manual" : "auto")}
+              />
+            </div>
+          </div>
+
+          {barcodeMode === "auto" ? (
+            <div className="flex items-center gap-2">
+              <Input value={generatedBarcode} readOnly className="font-mono text-sm bg-background" />
+              <Button type="button" variant="outline" size="icon" onClick={() => setGeneratedBarcode(generateBarcode())} title="Regenerate">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <Input
+                ref={barcodeInputRef}
+                value={manualBarcode}
+                onChange={e => setManualBarcode(e.target.value)}
+                placeholder="Scan barcode with USB reader or type manually…"
+                className="font-mono text-sm"
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">USB barcode scanners will auto-fill this field. You can also type it manually.</p>
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>Title *</Label>
@@ -139,7 +192,8 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
           </div>
           <div className="space-y-1.5">
             <Label>ISBN</Label>
-            <Input value={isbn} onChange={e => onIsbnChange(e.target.value)} placeholder="Auto-filled from scanner" />
+            <Input value={isbn} onChange={e => onIsbnChange(e.target.value)} placeholder="From barcode reader or enter manually" className="font-mono" />
+            <p className="text-xs text-muted-foreground">Auto-filled when you scan an ISBN barcode, or enter manually</p>
           </div>
           <div className="space-y-1.5">
             <Label>Category</Label>
@@ -164,7 +218,7 @@ const BookEntryForm = ({ isbn, onIsbnChange, onBookSaved }: BookEntryFormProps) 
           <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" rows={3} />
         </div>
 
-        <Button onClick={() => handleSubmit(false)} disabled={saving} className="gap-2">
+        <Button onClick={() => handleSubmit(false)} disabled={saving || !currentBarcode} className="gap-2">
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
           Save Book
         </Button>
