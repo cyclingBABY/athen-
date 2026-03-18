@@ -224,7 +224,17 @@ const Cataloging = () => {
   });
 
   return (
-    <AdminLayout title="Cataloging / Metadata Entry" description="Manage physical and digital book records">
+    <AdminLayout title="Cataloging" description="Manage books, scan barcodes, and handle circulation">
+      <Tabs defaultValue="catalog" className="space-y-4">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsTrigger value="catalog" className="gap-2"><BookOpen className="w-4 h-4" />Book Catalog</TabsTrigger>
+          <TabsTrigger value="scanner" className="gap-2"><ScanLine className="w-4 h-4" />Scan & Add</TabsTrigger>
+          <TabsTrigger value="borrow" className="gap-2"><ArrowRightLeft className="w-4 h-4" />Borrow / Return</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="scanner"><ScanAndAddBook /></TabsContent>
+        <TabsContent value="borrow"><BorrowReturnScanner /></TabsContent>
+        <TabsContent value="catalog">
       <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
