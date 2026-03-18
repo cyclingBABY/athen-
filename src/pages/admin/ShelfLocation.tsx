@@ -52,7 +52,7 @@ const ShelfLocation = () => {
 
   const autoAssign = useMutation({
     mutationFn: async () => {
-      const booksToUpdate = books?.filter(b => !(b as any).shelf_location) || [];
+      const booksToUpdate = books?.filter(b => !b.shelf_location) || [];
       for (const book of booksToUpdate) {
         const shelf = shelfMap[book.category] || "Z1-Z10";
         const row = Math.floor(Math.random() * 5) + 1;
