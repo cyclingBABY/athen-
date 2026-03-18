@@ -172,8 +172,8 @@ const Circulation = () => {
           <DialogHeader><DialogTitle>New Book Check-out</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div>
-              <Label>Patron Email</Label>
-              <Input value={patronEmail} onChange={e => setPatronEmail(e.target.value)} placeholder="patron@example.com" />
+              <Label>User Email</Label>
+              <Input value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="user@example.com" />
             </div>
             <div>
               <Label>Select Book</Label>
