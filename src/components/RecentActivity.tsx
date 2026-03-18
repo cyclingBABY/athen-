@@ -46,7 +46,7 @@ const RecentActivity = () => {
         .select("user_id, full_name")
         .in("user_id", Array.from(userIds));
 
-      const profileMap = new Map(profiles?.map((p) => [p.user_id, p.full_name || "Unknown"]) || []);
+      const profileMap = new Map<string, string>(profiles?.map((p) => [p.user_id, (p.full_name as string) || "Unknown"]) || []);
 
       const getInitials = (name: string) =>
         name
