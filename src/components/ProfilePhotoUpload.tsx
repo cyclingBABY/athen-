@@ -26,8 +26,8 @@ const ProfilePhotoUpload = ({ userId, currentPhotoUrl, onPhotoUpdated }: Profile
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Maximum file size is 5MB.", variant: "destructive" });
+    if (file.size > 20 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Maximum file size is 20MB.", variant: "destructive" });
       return;
     }
 
