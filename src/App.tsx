@@ -32,6 +32,7 @@ import Weeding from "./pages/admin/Weeding";
 import Reporting from "./pages/admin/Reporting";
 import BulkImport from "./pages/admin/BulkImport";
 import QRScanner from "./pages/admin/QRScanner";
+import BarcodeStation from "./pages/admin/BarcodeStation";
 import PatronApproval from "./pages/admin/PatronApproval";
 import LecturerManagement from "./pages/admin/LecturerManagement";
 
