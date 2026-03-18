@@ -22,7 +22,7 @@ const emptyForm = {
   title: "", author: "", isbn: "", category: "General", publish_year: "",
   total_copies: 1, available_copies: 1, description: "",
   cover_color: "hsl(210 60% 50%)", status: "available",
-  shelf_location: "",
+  shelf_location: "", barcode: "", barcodeMode: "auto" as "auto" | "manual",
 };
 
 const categories = [
