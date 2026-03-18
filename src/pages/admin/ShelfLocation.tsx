@@ -98,15 +98,15 @@ const ShelfLocation = () => {
                 <TableCell>{book.author}</TableCell>
                 <TableCell><Badge variant="secondary">{book.category}</Badge></TableCell>
                 <TableCell>
-                  {(book as any).shelf_location ? (
-                    <Badge variant="outline">{(book as any).shelf_location}</Badge>
+                  {book.shelf_location ? (
+                    <Badge variant="outline">{book.shelf_location}</Badge>
                   ) : (
                     <span className="text-muted-foreground text-sm">Not assigned</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => { setEditId(book.id); setShelfValue((book as any).shelf_location || ""); }}>
-                    {(book as any).shelf_location ? "Edit" : "Assign"}
+                  <Button variant="ghost" size="sm" onClick={() => { setEditId(book.id); setShelfValue(book.shelf_location || ""); }}>
+                    {book.shelf_location ? "Edit" : "Assign"}
                   </Button>
                 </TableCell>
               </TableRow>
