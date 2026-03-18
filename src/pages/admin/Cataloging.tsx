@@ -10,10 +10,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Pencil, Trash2, ImagePlus, BookOpen, Monitor, Upload, Barcode } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, ImagePlus, BookOpen, Monitor, Upload, Barcode, ScanLine, ArrowRightLeft } from "lucide-react";
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import QRCode from "qrcode";
+import ScanAndAddBook from "@/components/physical-scanner/ScanAndAddBook";
+import BorrowReturnScanner from "@/components/physical-scanner/BorrowReturnScanner";
 
 const emptyForm = {
   title: "", author: "", isbn: "", category: "General", publish_year: "",
