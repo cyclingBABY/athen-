@@ -18,7 +18,7 @@ interface ActivityItem {
 }
 
 const RecentActivity = () => {
-  const { data: activities = [], isLoading } = useQuery({
+  const { data: activities = [], isLoading } = useQuery<ActivityItem[]>({
     queryKey: ["recent-activity"],
     queryFn: async () => {
       // Fetch recent circulation records
