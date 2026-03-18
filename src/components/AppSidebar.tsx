@@ -35,7 +35,7 @@ const AppSidebar = () => {
             <BookOpen className="w-5 h-5 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-base font-display font-semibold text-sidebar-foreground">Athenaeum</h1>
+            <h1 className="text-base font-display font-semibold text-sidebar-foreground">Athena</h1>
             <p className="text-xs text-sidebar-foreground/50">Admin Panel</p>
           </div>
         </div>

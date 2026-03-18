@@ -69,7 +69,7 @@ const PatronHome = () => {
             {greeting()}, {profile?.full_name || "Reader"}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Welcome back to Athenaeum. Here's your library overview.
+            Welcome back to Athena. Here's your library overview.
           </p>
         </div>
 

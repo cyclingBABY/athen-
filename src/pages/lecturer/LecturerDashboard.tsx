@@ -68,7 +68,7 @@ const LecturerDashboard = () => {
             {greeting()}, {profile?.full_name || "Lecturer"}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {profile?.department ? `${profile.department} Department` : "Welcome to Athenaeum Lecturer Portal"}
+            {profile?.department ? `${profile.department} Department` : "Welcome to Athena Lecturer Portal"}
           </p>
         </div>
 
