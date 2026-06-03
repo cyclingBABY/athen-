@@ -113,4 +113,14 @@
   .text-body {
     font-family: 'Source Sans 3', system-ui, sans-serif;
   }
+  .pb-mobile-nav {
+    padding-bottom: 5.5rem;
+  }
 }
+
+@media (max-width: 768px) {
+  main {
+    padding-bottom: 5.5rem !important;
+  }
+}
+
