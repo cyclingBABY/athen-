@@ -28,3 +28,5 @@ api/uploads/
 api/email_approvals.txt
 api/lecturer_invites.txt
 
+.vercel
+.env*.local

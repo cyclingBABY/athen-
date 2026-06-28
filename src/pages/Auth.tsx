@@ -88,7 +88,10 @@ const Auth = ({ initialMode = "login" }: AuthProps) => {
         const authResult = await authResponse.json();
 
         if (!authResponse.ok || authResult.error) {
-          toast({ title: "Login failed", description: authResult.error || "Invalid credentials", variant: "destructive" });
+          const errMsg = typeof authResult.error === 'object' && authResult.error !== null
+            ? (authResult.error.message || JSON.stringify(authResult.error))
+            : (authResult.error || "Invalid credentials");
+          toast({ title: "Login failed", description: errMsg, variant: "destructive" });
           setLoading(false);
           return;
         }
@@ -137,7 +140,10 @@ const Auth = ({ initialMode = "login" }: AuthProps) => {
         const registerResult = await registerResponse.json();
 
         if (!registerResponse.ok || registerResult.error) {
-          toast({ title: "Registration failed", description: registerResult.error || "System error", variant: "destructive" });
+          const errMsg = typeof registerResult.error === 'object' && registerResult.error !== null
+            ? (registerResult.error.message || JSON.stringify(registerResult.error))
+            : (registerResult.error || "System error");
+          toast({ title: "Registration failed", description: errMsg, variant: "destructive" });
           setLoading(false);
           return;
         }
