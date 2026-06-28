@@ -85,8 +85,25 @@ const Cataloging = () => {
     const { error } = await supabase.storage.from("digital-library").upload(path, file, { upsert: true });
     if (error) throw error;
     const { data } = supabase.storage.from("digital-library").getPublicUrl(path);
-    const typeMap: Record<string, string> = { pdf: "PDF", epub: "EPUB", mp3: "Audio", wav: "Audio", m4a: "Audio" };
-    return { url: data.publicUrl, type: typeMap[ext] || "PDF" };
+    // Detect file type category from extension
+    const typeMap: Record<string, string> = {
+      // Fixed layouts & e-books
+      pdf: "PDF", epub: "EPUB", mobi: "MOBI", xps: "XPS", oxps: "XPS",
+      // Word processing
+      doc: "Word", docx: "Word", odt: "ODT", pages: "Pages", rtf: "RTF", txt: "Text", md: "Markdown", markdown: "Markdown",
+      // Spreadsheets
+      xls: "Excel", xlsx: "Excel", ods: "ODS", numbers: "Numbers", csv: "CSV",
+      // Presentations
+      ppt: "PowerPoint", pptx: "PowerPoint", ppsx: "PowerPoint", pps: "PowerPoint",
+      odp: "ODP", key: "Keynote",
+      // Audio
+      mp3: "Audio", wav: "Audio", ogg: "Audio", flac: "Audio", aac: "Audio",
+      m4a: "Audio", wma: "Audio", opus: "Audio", amr: "Audio", aiff: "Audio", ra: "Audio",
+      // Video
+      mp4: "Video", webm: "Video", mov: "Video", avi: "Video", mkv: "Video",
+    };
+    const type = typeMap[ext] || "Document";
+    return { url: data.publicUrl, type };
   };
 
   const createCopiesWithQR = async (bookId: string, count: number) => {
@@ -265,6 +282,7 @@ const Cataloging = () => {
               <TableHead>ISBN</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Barcode</TableHead>
+              <TableHead>Shelf Location</TableHead>
               <TableHead>Copies</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
@@ -272,9 +290,9 @@ const Cataloging = () => {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
             ) : filtered?.length === 0 ? (
-              <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No books found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">No books found</TableCell></TableRow>
             ) : filtered?.map(book => (
               <TableRow key={book.id}>
                 <TableCell>
@@ -296,6 +314,17 @@ const Cataloging = () => {
                 <TableCell className="font-mono text-xs">{book.isbn || "—"}</TableCell>
                 <TableCell><Badge variant="secondary">{book.category}</Badge></TableCell>
                 <TableCell className="font-mono text-xs">{book.barcode || "—"}</TableCell>
+                <TableCell>
+                  {!book.digital_file_url ? (
+                    book.shelf_location ? (
+                      <Badge variant="outline" className="font-mono text-xs">{book.shelf_location}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs italic">Unassigned</span>
+                    )
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
+                </TableCell>
                 <TableCell>{book.available_copies}/{book.total_copies}</TableCell>
                 <TableCell><Badge variant={book.status === "available" ? "default" : "destructive"}>{book.status}</Badge></TableCell>
                 <TableCell>
@@ -441,12 +470,14 @@ const Cataloging = () => {
                         <span className="text-sm text-muted-foreground">File already uploaded ({editingBook.digital_file_type})</span>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">PDF, EPUB, or Audio file</p>
+                      <p className="text-sm text-muted-foreground">PDF, EPUB, MOBI, Word, ODT, RTF, TXT, Markdown, Excel, CSV, PowerPoint, Keynote, or any Audio/Video format</p>
                     )}
                     <Button type="button" variant="outline" size="sm" onClick={() => digitalRef.current?.click()}>
                       <Upload className="w-4 h-4 mr-2" />{digitalFile || editingBook?.digital_file_url ? "Change File" : "Select File"}
                     </Button>
-                    <input ref={digitalRef} type="file" accept=".pdf,.epub,.mp3,.wav,.m4a" className="hidden" onChange={handleDigitalSelect} />
+                    <input ref={digitalRef} type="file"
+                      accept=".pdf,.epub,.mobi,.xps,.doc,.docx,.odt,.pages,.rtf,.txt,.md,.markdown,.xls,.xlsx,.ods,.numbers,.csv,.ppt,.pptx,.odp,.key,.ppsx,.pps,audio/*,.mp3,.wav,.ogg,.flac,.aac,.m4a,.wma,.opus,.amr,.aiff,.ra,.3gp,video/*,.mp4,.mov,.webm"
+                      className="hidden" onChange={handleDigitalSelect} />
                   </div>
                 </div>
               </>

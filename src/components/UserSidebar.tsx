@@ -1,19 +1,24 @@
-import { BookOpen, Home, Search, BookCopy, CalendarClock, DollarSign, User, LogOut } from "lucide-react";
+import { BookOpen, Home, Search, BookCopy, CalendarClock, DollarSign, User, LogOut, Shield, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import MobileUserNavigation from "@/components/MobileUserNavigation";
 
 const navItems = [
   { icon: Home, label: "Home", to: "/home" },
   { icon: Search, label: "Browse Catalog", to: "/catalog" },
   { icon: BookCopy, label: "My Books", to: "/my-books" },
+  { icon: CalendarClock, label: "Holds", to: "/holds" },
   { icon: CalendarClock, label: "Reservations", to: "/reservations" },
+
   { icon: DollarSign, label: "Fines & Fees", to: "/fines" },
+  { icon: Shield, label: "Clearance Status", to: "/clearance" },
+  { icon: GraduationCap, label: "Academic Services", to: "/academic-services" },
   { icon: User, label: "My Profile", to: "/profile" },
 ];
 
 const UserSidebar = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -36,10 +41,9 @@ const UserSidebar = () => {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 }`
               }
             >
@@ -51,7 +55,7 @@ const UserSidebar = () => {
 
         <div className="p-3 mb-2">
           <button
-            onClick={() => { signOut(); window.location.href = "/"; }}
+            onClick={() => { signOut(); navigate("/"); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
           >
             <LogOut className="w-[18px] h-[18px]" />

@@ -21,7 +21,8 @@ if (!$table || !$action) {
 // Relation Mapping for Sub-Selection Joins (e.g. select('*, books(title, author)'))
 $relationMap = [
     'reservations' => [
-        'books' => ['local_key' => 'book_id', 'foreign_table' => 'books', 'foreign_key' => 'id', 'is_array' => false]
+        'books' => ['local_key' => 'book_id', 'foreign_table' => 'books', 'foreign_key' => 'id', 'is_array' => false],
+        'profiles' => ['local_key' => 'user_id', 'foreign_table' => 'profiles', 'foreign_key' => 'user_id', 'is_array' => false]
     ],
     'circulation_records' => [
         'books' => ['local_key' => 'book_id', 'foreign_table' => 'books', 'foreign_key' => 'id', 'is_array' => false],
@@ -267,7 +268,48 @@ try {
             if (!isset($record['id']) || !$record['id']) {
                 $record['id'] = guidv4();
             }
-            
+
+            // ── Table-specific auto-fill ─────────────────────────────────
+            if ($table === 'circulation_records') {
+                if (!isset($record['checkout_date']) || !$record['checkout_date']) {
+                    $record['checkout_date'] = date('Y-m-d H:i:s');
+                }
+                if (!isset($record['due_date']) || !$record['due_date']) {
+                    $record['due_date'] = date('Y-m-d H:i:s', strtotime('+14 days'));
+                }
+                if (!isset($record['status']) || !$record['status']) {
+                    $record['status'] = 'borrowed';
+                }
+                if (!isset($record['renewed_count'])) {
+                    $record['renewed_count'] = 0;
+                }
+                // Also set borrowed_at for schema compatibility
+                if (!isset($record['borrowed_at'])) {
+                    $record['borrowed_at'] = $record['checkout_date'];
+                }
+            }
+
+            if ($table === 'fines') {
+                // App uses 'amount'; schema also has 'fine_amount' — keep both in sync
+                if (isset($record['amount']) && !isset($record['fine_amount'])) {
+                    $record['fine_amount'] = $record['amount'];
+                }
+                if (isset($record['fine_amount']) && !isset($record['amount'])) {
+                    $record['amount'] = $record['fine_amount'];
+                }
+                // App uses 'paid'; schema also has 'is_paid' — keep both in sync
+                if (isset($record['paid']) && !isset($record['is_paid'])) {
+                    $record['is_paid'] = $record['paid'] ? 1 : 0;
+                }
+                if (!isset($record['paid'])) {
+                    $record['paid'] = 0;
+                }
+                if (!isset($record['is_paid'])) {
+                    $record['is_paid'] = 0;
+                }
+            }
+            // ─────────────────────────────────────────────────────────────
+
             $cols = array_keys($record);
             $escapedCols = array_map('escapeCol', $cols);
             $placeholders = array_map(function($c) { return ":ins_{$c}"; }, $cols);
@@ -280,6 +322,9 @@ try {
                 // PDO Helper for Booleans
                 if (is_bool($val)) {
                     $val = $val ? 1 : 0;
+                }
+                if (is_array($val) || is_object($val)) {
+                    $val = json_encode($val);
                 }
                 $bindParams["ins_{$col}"] = $val;
             }
@@ -308,6 +353,43 @@ try {
         
         $setClauses = [];
         $updateParams = [];
+
+        // ── Table-specific update sync ────────────────────────────────
+        if ($table === 'book_trackings') {
+            // Optional convenience mapping (no-op if columns are already correct)
+            if (isset($payload['borrowed_at']) && !isset($payload['borrowed_at'])) {
+                $payload['borrowed_at'] = $payload['borrowed_at'];
+            }
+        }
+
+        if ($table === 'fines') {
+
+            // Sync paid ↔ is_paid
+            if (isset($payload['paid']) && !isset($payload['is_paid'])) {
+                $payload['is_paid'] = $payload['paid'] ? 1 : 0;
+            }
+            if (isset($payload['is_paid']) && !isset($payload['paid'])) {
+                $payload['paid'] = $payload['is_paid'] ? 1 : 0;
+            }
+            // Sync amount ↔ fine_amount
+            if (isset($payload['amount']) && !isset($payload['fine_amount'])) {
+                $payload['fine_amount'] = $payload['amount'];
+            }
+            if (isset($payload['fine_amount']) && !isset($payload['amount'])) {
+                $payload['amount'] = $payload['fine_amount'];
+            }
+        }
+        if ($table === 'circulation_records') {
+            // Sync return_date ↔ returned_at
+            if (isset($payload['return_date']) && !isset($payload['returned_at'])) {
+                $payload['returned_at'] = $payload['return_date'];
+            }
+            if (isset($payload['returned_at']) && !isset($payload['return_date'])) {
+                $payload['return_date'] = $payload['returned_at'];
+            }
+        }
+        // ─────────────────────────────────────────────────────────────
+
         foreach ($payload as $col => $val) {
             $escapedCol = escapeCol($col);
             $paramName = "upd_{$col}";
@@ -315,6 +397,9 @@ try {
             
             if (is_bool($val)) {
                 $val = $val ? 1 : 0;
+            }
+            if (is_array($val) || is_object($val)) {
+                $val = json_encode($val);
             }
             $updateParams[$paramName] = $val;
         }

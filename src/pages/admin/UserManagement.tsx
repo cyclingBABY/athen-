@@ -13,11 +13,32 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
+const getRoleLabel = (role: string) => {
+  switch (role) {
+    case "admin": return "Admin";
+    case "lecturer": return "Lecturer";
+    case "registrar": return "Registrar";
+    case "staff": return "Library Staff";
+    case "patron": return "Student";
+    default: return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Student";
+  }
+};
+
+const getRoleBadgeVariant = (role: string): "default" | "secondary" | "outline" | "destructive" => {
+  switch (role) {
+    case "admin": return "default";
+    case "registrar": return "outline";
+    case "staff": return "secondary";
+    case "lecturer": return "secondary";
+    default: return "secondary";
+  }
+};
+
 const UserManagement = () => {
   const [search, setSearch] = useState("");
   const [editProfile, setEditProfile] = useState<any>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", address: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", address: "", role: "patron", password: "" });
   const [addForm, setAddForm] = useState({ full_name: "", email: "", password: "", phone: "", role: "patron" });
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -37,19 +58,32 @@ const UserManagement = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (profile: any) => {
-      const { error } = await supabase.from("profiles").update({
+      const { error: profileError } = await supabase.from("profiles").update({
         full_name: profile.full_name,
         phone: profile.phone,
         address: profile.address,
       }).eq("id", editProfile.id);
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      const { error: roleError } = await supabase.from("user_roles").update({
+        role: profile.role
+      } as any).eq("user_id", editProfile.user_id);
+      if (roleError) throw roleError;
+
+      if (profile.password && profile.password.trim().length >= 6) {
+        const { error: pwdError } = await (supabase.auth as any).changePassword({
+          userId: editProfile.user_id,
+          password: profile.password.trim()
+        });
+        if (pwdError) throw pwdError;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast({ title: "User updated" });
+      toast({ title: "User updated successfully" });
       setEditProfile(null);
     },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: any) => toast({ title: "Error updating user", description: e.message, variant: "destructive" }),
   });
 
   const approveMutation = useMutation({
@@ -60,18 +94,6 @@ const UserManagement = () => {
     onSuccess: (_, { approve }) => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
       toast({ title: approve ? "User approved" : "User suspended" });
-    },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
-
-  const changeRoleMutation = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
-      const { error } = await supabase.from("user_roles").update({ role: newRole as "admin" | "patron" }).eq("user_id", userId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast({ title: "Role updated" });
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
@@ -89,14 +111,21 @@ const UserManagement = () => {
       if (!newUserId) throw new Error("User creation failed");
 
       await supabase.from("profiles").update({ approved: true, phone: u.phone || null } as any).eq("user_id", newUserId);
+      await supabase.from("user_roles").update({ role: u.role } as any).eq("user_id", newUserId);
 
-      if (u.role === "admin") {
-        await supabase.from("user_roles").update({ role: "admin" }).eq("user_id", newUserId);
-      }
+      // Send invitation email with login credentials
+      await supabase.functions.invoke("send-user-invite", {
+        body: {
+          email: u.email,
+          fullName: u.full_name,
+          password: u.password,
+          role: u.role,
+        },
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast({ title: "User added and approved" });
+      toast({ title: "User added", description: "Account created and invitation email sent." });
       setAddDialogOpen(false);
       setAddForm({ full_name: "", email: "", password: "", phone: "", role: "patron" });
     },
@@ -105,7 +134,14 @@ const UserManagement = () => {
 
   const openEdit = (p: any) => {
     setEditProfile(p);
-    setForm({ full_name: p.full_name || "", email: p.email || "", phone: p.phone || "", address: p.address || "" });
+    setForm({
+      full_name: p.full_name || "",
+      email: p.email || "",
+      phone: p.phone || "",
+      address: p.address || "",
+      role: p.role || "patron",
+      password: "",
+    });
   };
 
   const filtered = profiles?.filter(p =>
@@ -153,8 +189,8 @@ const UserManagement = () => {
                 <TableCell className="font-medium">{p.full_name || "—"}</TableCell>
                 <TableCell>{p.email || "—"}</TableCell>
                 <TableCell>
-                  <Badge variant={(p as any).role === "admin" ? "default" : "secondary"}>
-                    {(p as any).role === "admin" ? "Admin" : "User"}
+                  <Badge variant={getRoleBadgeVariant((p as any).role)}>
+                    {getRoleLabel((p as any).role)}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -179,12 +215,6 @@ const UserManagement = () => {
                       </Button>
                     )}
                     <Button variant="ghost" size="sm" onClick={() => openEdit(p)} title="Edit"><Pencil className="w-3.5 h-3.5" /></Button>
-                    <Button
-                      variant="ghost" size="sm" title="Toggle Admin"
-                      onClick={() => changeRoleMutation.mutate({ userId: p.user_id, newRole: (p as any).role === "admin" ? "patron" : "admin" })}
-                    >
-                      <Shield className="w-3.5 h-3.5" />
-                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -198,13 +228,36 @@ const UserManagement = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user profile information.</DialogDescription>
+            <DialogDescription>Update user profile information and access role.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div><Label>Full Name</Label><Input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} /></div>
             <div><Label>Email</Label><Input value={form.email} disabled className="bg-muted" /></div>
             <div><Label>Phone</Label><Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
             <div><Label>Address</Label><Input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} /></div>
+            <div>
+              <Label>Role</Label>
+              <Select value={form.role} onValueChange={v => setForm({ ...form, role: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="patron">Student (Patron)</SelectItem>
+                  <SelectItem value="lecturer">Lecturer</SelectItem>
+                  <SelectItem value="registrar">Registrar</SelectItem>
+                  <SelectItem value="staff">Library Staff</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Reset Password</Label>
+              <Input
+                type="password"
+                placeholder="Leave blank to keep current password"
+                value={form.password}
+                onChange={e => setForm({ ...form, password: e.target.value })}
+              />
+              <p className="text-[11px] text-muted-foreground mt-0.5">Min 6 characters. Will update immediately on save.</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditProfile(null)}>Cancel</Button>
@@ -232,7 +285,10 @@ const UserManagement = () => {
               <Select value={addForm.role} onValueChange={v => setAddForm({ ...addForm, role: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="patron">User</SelectItem>
+                  <SelectItem value="patron">Student (Patron)</SelectItem>
+                  <SelectItem value="lecturer">Lecturer</SelectItem>
+                  <SelectItem value="registrar">Registrar</SelectItem>
+                  <SelectItem value="staff">Library Staff</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>

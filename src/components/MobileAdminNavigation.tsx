@@ -3,7 +3,7 @@ import {
   BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, 
   BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, 
   ArrowRightLeft, ClipboardList, Shield, Trash2, FileSpreadsheet, 
-  ScanLine, UserCheck, GraduationCap, Menu, Library
+  ScanLine, UserCheck, GraduationCap, Menu, Library, ShieldCheck
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sheet";
 
 const MobileAdminNavigation = () => {
-  const { signOut } = useAuth();
+  const { signOut, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [openSheet, setOpenSheet] = useState(false);
@@ -30,7 +30,10 @@ const MobileAdminNavigation = () => {
         { icon: BookOpen, label: "Cataloging", path: "/admin/cataloging" },
         { icon: Upload, label: "Digital Upload", path: "/admin/digital-upload" },
         { icon: MapPin, label: "Shelf Location", path: "/admin/shelf-location" },
-      ]
+      ].filter(item => {
+        if (role === "registrar") return false;
+        return true;
+      })
     },
     {
       title: "Circulation & Members",
@@ -39,9 +42,15 @@ const MobileAdminNavigation = () => {
         { icon: UserCheck, label: "Approvals", path: "/admin/approvals" },
         { icon: Users, label: "Users", path: "/admin/users" },
         { icon: GraduationCap, label: "Lecturers", path: "/admin/lecturers" },
-        { icon: CalendarClock, label: "Holds", path: "/admin/holds" },
+        { icon: BookCopy, label: "Holds", path: "/admin/holds" },
+        { icon: CalendarClock, label: "Reservations", path: "/admin/reservations" },
         { icon: DollarSign, label: "Fines & Fees", path: "/admin/fines" },
-      ]
+        { icon: ShieldCheck, label: "Clearance Dashboard", path: "/registrar/dashboard" },
+      ].filter(item => {
+        if (role === "registrar") return item.path === "/registrar/dashboard";
+        if (role === "staff") return !["/admin/users", "/admin/approvals", "/admin/lecturers"].includes(item.path);
+        return true;
+      })
     },
     {
       title: "Management & Scanner Tools",
@@ -54,9 +63,13 @@ const MobileAdminNavigation = () => {
         { icon: Trash2, label: "Weeding", path: "/admin/weeding" },
         { icon: BarChart3, label: "Reporting", path: "/admin/reporting" },
         { icon: FileSpreadsheet, label: "Bulk Import", path: "/admin/bulk-import" },
-      ]
+      ].filter(item => {
+        if (role === "registrar") return false;
+        if (role === "staff") return !["/admin/weeding", "/admin/reporting", "/admin/bulk-import"].includes(item.path);
+        return true;
+      })
     }
-  ];
+  ].filter(sec => sec.items.length > 0);
 
   return (
     <>
@@ -64,7 +77,9 @@ const MobileAdminNavigation = () => {
       <header className="fixed top-0 left-0 right-0 h-14 bg-background/85 backdrop-blur-md border-b z-40 flex items-center justify-between px-4 md:hidden">
         <div className="flex items-center gap-2">
           <Library className="w-5 h-5 text-primary" />
-          <span className="font-display font-bold text-lg text-foreground tracking-wide">Athena Admin</span>
+          <span className="font-display font-bold text-lg text-foreground tracking-wide">
+            {role === "registrar" ? "Athena Registrar" : "Athena Admin"}
+          </span>
         </div>
         
         {/* Quick Online Indicator */}
@@ -76,59 +91,79 @@ const MobileAdminNavigation = () => {
 
       {/* Sticky Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border z-40 md:hidden flex justify-around items-center h-16 px-2 safe-bottom">
-        {/* Dashboard */}
-        <NavLink
-          to="/dashboard"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            }`
-          }
-        >
-          <LayoutDashboard className="w-5 h-5 mb-0.5" />
-          <span>Dashboard</span>
-        </NavLink>
+        {/* Dashboard / Clearance for Registrar */}
+        {role === "registrar" ? (
+          <NavLink
+            to="/registrar/dashboard"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`
+            }
+          >
+            <ShieldCheck className="w-5 h-5 mb-0.5" />
+            <span>Clearance</span>
+          </NavLink>
+        ) : (
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`
+            }
+          >
+            <LayoutDashboard className="w-5 h-5 mb-0.5" />
+            <span>Dashboard</span>
+          </NavLink>
+        )}
 
-        {/* QR Scanner (Extremely useful for mobile admins scanning codes) */}
-        <NavLink
-          to="/admin/qr-scanner"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            }`
-          }
-        >
-          <ScanLine className="w-5 h-5 mb-0.5" />
-          <span>Scanner</span>
-        </NavLink>
+        {/* QR Scanner (Only for Admin & Staff) */}
+        {role !== "registrar" && (
+          <NavLink
+            to="/admin/qr-scanner"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`
+            }
+          >
+            <ScanLine className="w-5 h-5 mb-0.5" />
+            <span>Scanner</span>
+          </NavLink>
+        )}
 
-        {/* Circulation */}
-        <NavLink
-          to="/admin/circulation"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            }`
-          }
-        >
-          <ArrowRightLeft className="w-5 h-5 mb-0.5" />
-          <span>Circulation</span>
-        </NavLink>
+        {/* Circulation (Only for Admin & Staff) */}
+        {role !== "registrar" && (
+          <NavLink
+            to="/admin/circulation"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`
+            }
+          >
+            <ArrowRightLeft className="w-5 h-5 mb-0.5" />
+            <span>Circulation</span>
+          </NavLink>
+        )}
 
-        {/* Approvals */}
-        <NavLink
-          to="/admin/approvals"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            }`
-          }
-        >
-          <UserCheck className="w-5 h-5 mb-0.5" />
-          <span>Approvals</span>
-        </NavLink>
+        {/* Approvals (Only for Admin) */}
+        {role === "admin" && (
+          <NavLink
+            to="/admin/approvals"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`
+            }
+          >
+            <UserCheck className="w-5 h-5 mb-0.5" />
+            <span>Approvals</span>
+          </NavLink>
+        )}
 
-        {/* Hamburger Menu for all other 18 panels */}
+        {/* Hamburger Menu for all other panels */}
         <Sheet open={openSheet} onOpenChange={setOpenSheet}>
           <SheetTrigger asChild>
             <button className="flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium text-muted-foreground hover:text-foreground">

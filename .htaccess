@@ -1,0 +1,21 @@
+# Root-level Apache config for the athen- project
+# Redirects non-api, non-dist requests to the React SPA in /dist/
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /athen-/
+
+  # 1. Allow direct access to /api/ (PHP backend) — no rewriting
+  RewriteRule ^api/ - [L]
+
+  # 2. Allow direct access to /dist/ (static assets) — no rewriting
+  RewriteRule ^dist/ - [L]
+
+  # 3. Redirect bare root (http://localhost/athen-/) to the SPA
+  RewriteRule ^$ dist/index.html [L]
+
+  # 4. Redirect everything else to the SPA
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . dist/index.html [L]
+</IfModule>

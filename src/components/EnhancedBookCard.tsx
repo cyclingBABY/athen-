@@ -128,6 +128,16 @@ const EnhancedBookCard = ({
           </span>
         </div>
 
+        {/* Shelf Location for physical books */}
+        {!isDigital && book.shelf_location && (
+          <div className="mt-2.5 flex items-center gap-1 text-[11.5px] text-muted-foreground">
+            <span className="font-semibold text-accent">Shelf Location:</span>
+            <span className="font-mono text-foreground font-semibold bg-secondary px-1.5 py-0.5 rounded text-[10px]">
+              {book.shelf_location}
+            </span>
+          </div>
+        )}
+
         {/* Due date for continue reading */}
         {isContinueReading && dueDate && (
           <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
@@ -139,9 +149,9 @@ const EnhancedBookCard = ({
         {/* Actions */}
         {showActions && (
           <div className="flex items-center gap-2 mt-auto pt-3">
-            {isDigital && onView && (
+            {onView && (
               <Button size="sm" variant="outline" className="h-7 text-xs px-2 flex-1" onClick={onView}>
-                <Eye className="w-3 h-3 mr-1" /> View
+                <Eye className="w-3 h-3 mr-1" /> Read
               </Button>
             )}
             {isDigital && onDownload && (
@@ -150,7 +160,7 @@ const EnhancedBookCard = ({
               </Button>
             )}
             {!isDigital && onReserve && book.available_copies > 0 && (
-              <Button size="sm" variant="default" className="h-7 text-xs px-3 w-full" onClick={onReserve}>
+              <Button size="sm" variant="default" className="h-7 text-xs px-3 flex-1" onClick={onReserve}>
                 Reserve
               </Button>
             )}

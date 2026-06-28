@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { BookOpen, Search, BarChart3, Users, QrCode, ArrowRight, BookMarked, Library, Download, CheckCircle2, Mail, Phone, MapPin } from "lucide-react";
+import PublicNavbar from "@/components/PublicNavbar";
+import PublicFooter from "@/components/PublicFooter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState, useCallback } from "react";
@@ -70,31 +72,8 @@ const Landing = () => {
   const goToFeature = useCallback((idx: number) => setActiveFeature(idx), []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <Library className="w-7 h-7 text-primary" />
-            <span className="text-xl font-display font-bold text-foreground">Athena</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#hero" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Home</a>
-            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#catalog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Catalog</a>
-            <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</a>
-            <a href="#contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Contact</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/auth">Login</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link to="/auth">Get Started</Link>
-            </Button>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-background flex flex-col">
+      <PublicNavbar />
 
       {/* Hero */}
       <section id="hero" className="relative overflow-hidden">
@@ -109,8 +88,7 @@ const Landing = () => {
               Trusted by 200+ institutions
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight text-foreground">
-              Smart Library Management{" "}
-              <span className="text-primary">Made Simple</span>
+              Library Management System
             </h1>
             <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
               Athena helps libraries manage books, members, borrowing, digital resources, and analytics — all from one elegant platform built for modern institutions.
@@ -163,11 +141,10 @@ const Landing = () => {
                     <CardContent className="p-3 space-y-1">
                       <h4 className="font-display font-semibold text-sm text-foreground line-clamp-1">{book.title}</h4>
                       <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
-                      <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full capitalize ${
-                        book.status === "available" ? "bg-primary/10 text-primary" :
+                      <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full capitalize ${book.status === "available" ? "bg-primary/10 text-primary" :
                         book.status === "checked-out" ? "bg-destructive/10 text-destructive" :
-                        "bg-muted text-muted-foreground"
-                      }`}>
+                          "bg-muted text-muted-foreground"
+                        }`}>
                         {book.status?.replace("-", " ") || "available"}
                       </span>
                     </CardContent>
@@ -205,9 +182,8 @@ const Landing = () => {
                       key={f.title}
                       src={f.img}
                       alt={f.title}
-                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-                        i === activeFeature ? "opacity-100" : "opacity-0"
-                      }`}
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === activeFeature ? "opacity-100" : "opacity-0"
+                        }`}
                     />
                   ))}
                 </div>
@@ -216,9 +192,8 @@ const Landing = () => {
                   {features.map((f, i) => (
                     <div
                       key={f.title}
-                      className={`transition-all duration-500 ${
-                        i === activeFeature ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute pointer-events-none"
-                      }`}
+                      className={`transition-all duration-500 ${i === activeFeature ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 absolute pointer-events-none"
+                        }`}
                     >
                       {i === activeFeature && (
                         <>
@@ -255,9 +230,8 @@ const Landing = () => {
                 <button
                   key={f.title}
                   onClick={() => goToFeature(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === activeFeature ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                  }`}
+                  className={`h-2 rounded-full transition-all duration-300 ${i === activeFeature ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    }`}
                 />
               ))}
             </div>
@@ -268,11 +242,10 @@ const Landing = () => {
                 <button
                   key={f.title}
                   onClick={() => goToFeature(i)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    i === activeFeature
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "bg-card border text-muted-foreground hover:text-foreground hover:border-primary/30"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${i === activeFeature
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-card border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                    }`}
                 >
                   <f.icon className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
                   {f.title}
@@ -356,11 +329,10 @@ const Landing = () => {
                 <CardContent className="p-4 space-y-2">
                   <h4 className="font-display font-semibold text-sm text-foreground line-clamp-1">{book.title}</h4>
                   <p className="text-xs text-muted-foreground">{book.author}</p>
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full capitalize ${
-                    book.status === "available" ? "bg-success/10 text-success" :
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full capitalize ${book.status === "available" ? "bg-success/10 text-success" :
                     book.status === "checked-out" ? "bg-info/10 text-info" :
-                    "bg-warning/10 text-warning"
-                  }`}>
+                      "bg-warning/10 text-warning"
+                    }`}>
                     {book.status?.replace("-", " ")}
                   </span>
                 </CardContent>
@@ -384,7 +356,7 @@ const Landing = () => {
               <Button size="lg" variant="secondary" asChild>
                 <Link to="/auth">Register Now <ArrowRight className="w-4 h-4 ml-1" /></Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+              <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" asChild>
                 <Link to="/auth">Login</Link>
               </Button>
             </div>
@@ -392,50 +364,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer id="contact" className="border-t bg-card py-14">
-        <div className="container mx-auto px-4">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Library className="w-6 h-6 text-primary" />
-                <span className="text-lg font-display font-bold text-foreground">Athena</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Smart library management for modern institutions. Built for universities, schools, and public libraries.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#hero" className="hover:text-foreground transition-colors">Home</a></li>
-                <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#catalog" className="hover:text-foreground transition-colors">Catalog</a></li>
-                <li><a href="#about" className="hover:text-foreground transition-colors">About</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-4">Account</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/auth" className="hover:text-foreground transition-colors">Login</Link></li>
-                <li><Link to="/auth" className="hover:text-foreground transition-colors">Register</Link></li>
-                <li><Link to="/staff" className="hover:text-foreground transition-colors">Staff Portal</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-4">Contact</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> info@athena-library.edu</li>
-                <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> +1 (555) 234-5678</li>
-                <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /> 100 University Ave</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t mt-10 pt-6 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Athena Library Management System. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 };

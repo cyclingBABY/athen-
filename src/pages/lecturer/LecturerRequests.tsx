@@ -12,7 +12,7 @@ const LecturerRequests = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("reservations")
-        .select("*, books(title, author)")
+        .select("*, books(title, author, shelf_location)")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
@@ -37,7 +37,14 @@ const LecturerRequests = () => {
             <div key={r.id} className="bg-card border rounded-xl p-4 flex items-center justify-between">
               <div>
                 <p className="font-semibold text-foreground">{r.books?.title}</p>
-                <p className="text-sm text-muted-foreground">by {r.books?.author}</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="text-sm text-muted-foreground">by {r.books?.author}</span>
+                  {r.books?.shelf_location && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] text-accent font-semibold bg-accent/10 px-1.5 py-0.5 rounded">
+                      📍 {r.books.shelf_location}
+                    </span>
+                  )}
+                </div>
               </div>
               <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
                 r.status === "active" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"

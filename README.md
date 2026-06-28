@@ -1,73 +1,98 @@
-# Welcome to your Lovable project
+# 📚 Athena Library Management System
 
-## Project info
+A modern Library Management System featuring a React SPA frontend and a custom PHP backend API communicating with a MySQL database.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+---
 
-## How can I edit this code?
+## 🛠️ Technology Stack
 
-There are several ways of editing your application.
+- **Frontend**: Vite, React, TypeScript, Tailwind CSS, shadcn/ui, HashRouter (for smooth routing)
+- **Backend API**: PHP (8.1+) running on Apache
+- **Database**: MySQL (PDO)
+- **Deployment**: Vercel (Frontend) + Render (Backend)
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 💻 Local Development Setup
 
-Changes made via Lovable will be committed automatically to this repo.
+To run the application locally on your computer, you need **Node.js** and **XAMPP** installed.
 
-**Use your preferred IDE**
+### Step 1: Set up the Local Database (XAMPP)
+1. Start the **Apache** and **MySQL** services in the XAMPP Control Panel.
+2. Open **phpMyAdmin** (`http://localhost/phpmyadmin`).
+3. Create a new database named `athena_1`.
+4. Import the SQL schema file located at `db/athena_1_schema.sql` into the database.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Step 2: Install Frontend Dependencies
+Open your terminal in the project root directory and run:
+```bash
+npm install
 ```
 
-**Edit a file directly in GitHub**
+### Step 3: Run the Application
+You can run the app in two ways locally:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Via Vite Dev Server (Recommended for development)**:
+  ```bash
+  npm run dev
+  ```
+  This runs the frontend at `http://localhost:8080/`. API requests are proxied automatically to your local XAMPP Apache server (`http://localhost/athen-/api/`).
 
-**Use GitHub Codespaces**
+- **Via Local Apache Server (XAMPP)**:
+  1. Make sure the project folder is placed inside `C:\xampp\htdocs\athen-`.
+  2. Build the project:
+     ```bash
+     npm run build
+     ```
+  3. Open your browser and navigate to `http://localhost/athen-/` (which redirects to `dist/index.html` via the `.htaccess` rules).
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 🚀 Production Deployment Guide (Vercel + Render)
 
-This project is built with:
+This application is configured for a **split deployment** model: the static React frontend is hosted on **Vercel** for lightning-fast delivery, while the PHP backend is packaged into a **Docker container** and hosted on **Render**, connecting to an external cloud database.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Phase 1: Create a Free Cloud MySQL Database
+Since Render's free tier web services do not include MySQL databases, you need an external MySQL host (e.g. [Aiven MySQL](https://aiven.io/mysql) or [TiDB Cloud](https://pingcap.com/products/tidb-cloud/)).
+1. Sign up on your chosen provider and create a free MySQL database instance.
+2. Retrieve your connection details:
+   - **Host** (e.g., `mysql-xxx.aivencloud.com`)
+   - **Port** (e.g., `12345` or default `3306`)
+   - **User**
+   - **Password**
+   - **Database Name** (e.g. `defaultdb`)
+3. Connect using a database tool (like phpMyAdmin or DBeaver) and run the SQL queries inside `db/athena_1_schema.sql` to initialize your cloud tables.
 
-## How can I deploy this project?
+### Phase 2: Deploy the PHP Backend to Render
+1. Push your local project repository to GitHub.
+2. Log in to [Render](https://render.com) and click **New** > **Web Service**.
+3. Connect your GitHub repository.
+4. Set the following options in the setup wizard:
+   - **Name**: `athena-library-api`
+   - **Runtime**: **Docker** (Render will automatically build the container using the root [Dockerfile](Dockerfile))
+   - **Instance Type**: **Free**
+5. Click **Advanced** and add the following Environment Variables to link your cloud database:
+   - `DB_HOST` = *Your cloud database host*
+   - `DB_USER` = *Your cloud database username*
+   - `DB_PASS` = *Your cloud database password*
+   - `DB_NAME` = *Your cloud database name*
+6. Click **Create Web Service**. Once the build finishes and shows **Live**, copy your Web Service URL (e.g., `https://athena-library-api.onrender.com`).
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Phase 3: Deploy the React Frontend to Vercel
+1. Log in to [Vercel](https://vercel.com).
+2. Click **Add New** > **Project** and import your GitHub repository.
+3. Vercel will automatically detect that it is a Vite project. Keep the default settings.
+4. Under **Environment Variables**, add:
+   - **Key**: `VITE_API_URL`
+   - **Value**: `https://athena-library-api.onrender.com` *(Use the exact Render Web Service URL you copied in Phase 2)*
+5. Click **Deploy**. Vercel will build the React application and provide you with a live URL (e.g., `https://athena-library.vercel.app`).
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## ⚠️ Important Production Warnings
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+1. **Render Free Tier Spin-up Delay**: 
+   Render's free tier web services spin down (go to sleep) after 15 minutes of inactivity. When you first visit your Vercel site after a period of idle time, the first API request (like logging in or fetching books) may take up to **50 seconds** to complete while the Render container starts up.
+2. **Ephemeral File Storage**:
+   Uploaded profile pictures and book covers are saved inside the container filesystem under `/var/www/html/uploads/`. Because Render's free tier containers use ephemeral storage, all uploaded files will be deleted whenever the container restarts or wakes up from sleep. 
+   *(Note: For persistent production storage, you can mount a Render paid disk or connect to a cloud service like Cloudinary/AWS S3).*

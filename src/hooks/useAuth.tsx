@@ -1,19 +1,31 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
+
+type LocalUser = {
+  id: string;
+  email?: string;
+  [key: string]: unknown;
+};
 
 interface AuthContext {
-  user: User | null;
-  role: "admin" | "patron" | "lecturer" | null;
+  user: LocalUser | null;
+  role: "admin" | "patron" | "lecturer" | "registrar" | "staff" | null;
   loading: boolean;
+  loginLocalContext: (user: LocalUser, token: string, role: "admin" | "patron" | "lecturer" | "registrar" | "staff") => void;
   signOut: () => Promise<void>;
 }
 
-const AuthCtx = createContext<AuthContext>({ user: null, role: null, loading: true, signOut: async () => {} });
+const AuthCtx = createContext<AuthContext>({
+  user: null,
+  role: null,
+  loading: true,
+  loginLocalContext: () => {},
+  signOut: async () => {},
+});
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<"admin" | "patron" | "lecturer" | null>(null);
+  const [user, setUser] = useState<LocalUser | null>(null);
+  const [role, setRole] = useState<"admin" | "patron" | "lecturer" | "registrar" | "staff" | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchRole = async (userId: string) => {
@@ -28,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error fetching role:", error);
         setRole("patron");
       } else {
-        setRole((data?.role as "admin" | "patron" | "lecturer") ?? "patron");
+        setRole((data?.role as "admin" | "patron" | "lecturer" | "registrar" | "staff") ?? "patron");
       }
     } catch (e) {
       console.error("Role fetch exception:", e);
@@ -43,6 +55,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(u);
       if (u) {
         await fetchRole(u.id);
+      } else {
+        setRole(null);
       }
       setLoading(false);
     });
@@ -55,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Use setTimeout to avoid blocking the auth state change callback
         setTimeout(async () => {
           await fetchRole(u.id);
+          setLoading(false);
         }, 0);
       } else {
         setRole(null);
@@ -65,13 +80,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const loginLocalContext = (user: LocalUser, token: string, role: "admin" | "patron" | "lecturer" | "registrar" | "staff") => {
+    localStorage.setItem("athena_token", token);
+    localStorage.setItem("athena_user", JSON.stringify(user));
+    setUser(user);
+    setRole(role);
+    setLoading(false);
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setRole(null);
   };
 
-  return <AuthCtx.Provider value={{ user, role, loading, signOut }}>{children}</AuthCtx.Provider>;
+  return <AuthCtx.Provider value={{ user, role, loading, loginLocalContext, signOut }}>{children}</AuthCtx.Provider>;
 };
 
 export const useAuth = () => useContext(AuthCtx);

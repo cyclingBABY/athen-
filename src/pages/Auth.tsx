@@ -1,12 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Loader2, ArrowLeft, Camera, Upload, Eye, EyeOff } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
-const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (window.location.origin + (window.location.pathname.includes('/athen-') ? '/athen-/api' : '/api'));
+
+interface AuthProps {
+  initialMode?: "login" | "register";
+}
+
+const Auth = ({ initialMode = "login" }: AuthProps) => {
+  const [isLogin, setIsLogin] = useState(initialMode !== "register");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -20,7 +26,9 @@ const Auth = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, role, loading: authLoading } = useAuth();
+  
+  // NOTE: Ensure your local useAuth hook reads credentials from localStorage or cookies set during login
+  const { user, role, loading: authLoading, loginLocalContext } = useAuth();
 
   useEffect(() => {
     if (!authLoading && user && role) {
@@ -42,17 +50,25 @@ const Auth = () => {
     }
   };
 
-  const uploadPhoto = async (userId: string): Promise<string | null> => {
+  // Local storage upload target for photos using a custom local endpoint or standard storage script
+  const uploadPhotoLocal = async (userId: string): Promise<string | null> => {
     if (!photoFile) return null;
-    const ext = photoFile.name.split(".").pop();
-    const path = `${userId}/avatar.${ext}`;
-    const { error } = await supabase.storage.from("book-covers").upload(path, photoFile, { upsert: true });
-    if (error) {
-      console.error("Photo upload error:", error);
+    
+    const formData = new FormData();
+    formData.append("photo", photoFile);
+    formData.append("userId", userId);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/storage.php`, {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+      return result.publicUrl || null;
+    } catch (error) {
+      console.error("Local photo upload error:", error);
       return null;
     }
-    const { data } = supabase.storage.from("book-covers").getPublicUrl(path);
-    return data.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,62 +76,103 @@ const Auth = () => {
     setLoading(true);
     setPendingApproval(false);
 
-    if (isLogin) {
-      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast({ title: "Login failed", description: error.message, variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("approved")
-        .eq("user_id", signInData.user.id)
-        .maybeSingle();
+    try {
+      if (isLogin) {
+        // 1. Authenticate user against local XAMPP custom auth endpoint
+        const authResponse = await fetch(`${API_BASE_URL}/auth.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "login", email, password }),
+        });
 
-      if (profile && !profile.approved) {
-        await supabase.auth.signOut();
-        setPendingApproval(true);
-        setLoading(false);
-        return;
-      }
-    } else {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
+        const authResult = await authResponse.json();
+
+        if (!authResponse.ok || authResult.error) {
+          toast({ title: "Login failed", description: authResult.error || "Invalid credentials", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+
+        // 2. Query permissions using the universal router engine
+        const profileResponse = await fetch(`${API_BASE_URL}/index.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            table: "profiles",
+            action: "select",
+            isMaybeSingle: true,
+            filters: [{ col: "user_id", op: "eq", val: authResult.user.id }],
+          }),
+        });
+
+        const profileResult = await profileResponse.json();
+
+        if (profileResult.data && !profileResult.data.approved) {
+          toast({ title: "Access Denied", description: "Your account is pending administrator approval.", variant: "warning" });
+          setPendingApproval(true);
+          setLoading(false);
+          return;
+        }
+
+        // Initialize local authentication session context
+        if (loginLocalContext) {
+          loginLocalContext(authResult.user, authResult.token, authResult.role);
+        }
+
+      } else {
+        // 1. Process Registration over local XAMPP system
+        const registerResponse = await fetch(`${API_BASE_URL}/auth.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "register",
+            email,
+            password,
             full_name: fullName,
-            account_type: "patron",
             registration_number: registrationNumber,
-          },
-        },
-      });
-      if (error) {
-        toast({ title: "Registration failed", description: error.message, variant: "destructive" });
-        setLoading(false);
-        return;
-      }
+            account_type: "patron"
+          }),
+        });
 
-      if (data.user) {
-        setTimeout(async () => {
+        const registerResult = await registerResponse.json();
+
+        if (!registerResponse.ok || registerResult.error) {
+          toast({ title: "Registration failed", description: registerResult.error || "System error", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+
+        // 2. Upload photo and update profile metadata if profile entries are generated
+        if (registerResult.user?.id) {
           const updates: any = { campus: campus || null };
+          
           if (photoFile) {
-            const photoUrl = await uploadPhoto(data.user!.id);
+            const photoUrl = await uploadPhotoLocal(registerResult.user.id);
             if (photoUrl) updates.photo_url = photoUrl;
           }
-          await supabase.from("profiles").update(updates).eq("user_id", data.user!.id);
-        }, 1000);
+
+          await fetch(`${API_BASE_URL}/index.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              table: "profiles",
+              action: "update",
+              payload: updates,
+              filters: [{ col: "user_id", op: "eq", val: registerResult.user.id }]
+            }),
+          });
+        }
+
+        // No pending approval step for new registrations
+        setIsLogin(true);
+        toast({ title: "Account Created", description: "You can now sign in." });
       }
-
-      await supabase.auth.signOut();
-      setPendingApproval(true);
+    } catch (err: any) {
+      toast({ title: "Server Connection Error", description: "Failed to connect to local host API.", variant: "destructive" });
+    } finally {
       setLoading(false);
-      return;
     }
-    setLoading(false);
   };
-
 
   const inputClass =
     "w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30";
@@ -168,7 +225,6 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <>
-                  {/* Photo Upload */}
                   <div className="flex flex-col items-center">
                     <input
                       ref={fileInputRef}

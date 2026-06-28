@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local API uploads and invite logs
+api/uploads/
+api/email_approvals.txt
+api/lecturer_invites.txt
+

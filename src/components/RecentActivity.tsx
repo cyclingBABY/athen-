@@ -31,7 +31,7 @@ const RecentActivity = () => {
       // Fetch recent reservations
       const { data: reservations } = await supabase
         .from("reservations")
-        .select("id, status, reservation_date, user_id, book_id, books(title)")
+        .select("id, status, created_at, user_id, book_id, books(title)")
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -89,8 +89,8 @@ const RecentActivity = () => {
           avatar: getInitials(name),
           action: "Reserved",
           book: bookTitle,
-          time: formatDistanceToNow(new Date(r.reservation_date), { addSuffix: true }),
-          date: new Date(r.reservation_date),
+          time: formatDistanceToNow(new Date(r.created_at), { addSuffix: true }),
+          date: new Date(r.created_at),
         });
       });
 

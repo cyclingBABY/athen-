@@ -21,16 +21,20 @@ const UserReservations = () => {
     if (!user) return;
     const { data } = await supabase
       .from("reservations")
-      .select("*, books(title, author, cover_color)")
+      .select("*, books(title, author, cover_color, shelf_location)")
       .eq("user_id", user.id)
-      .order("reservation_date", { ascending: false });
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
     if (data) setReservations(data);
   };
 
   useEffect(() => { fetchReservations(); }, [user]);
 
   const handleCancel = async (id: string) => {
-    const { error } = await supabase.from("reservations").update({ status: "cancelled" }).eq("id", id);
+    const { error } = await supabase
+      .from("reservations")
+      .update({ status: "cancelled" })
+      .eq("id", id);
     if (error) {
       toast({ title: "Failed to cancel", description: error.message, variant: "destructive" });
     } else {
@@ -44,6 +48,7 @@ const UserReservations = () => {
       <UserSidebar />
       <main className="flex-1 p-6 overflow-auto">
         <h1 className="text-2xl font-display font-bold mb-6">My Reservations</h1>
+        <p className="text-sm text-muted-foreground -mt-4 mb-6">List of books you currently have reserved and are waiting to pick up.</p>
 
         <div className="bg-card rounded-xl border">
           {reservations.length === 0 ? (
@@ -60,11 +65,19 @@ const UserReservations = () => {
                     <div className="w-8 h-11 rounded-sm shadow-sm" style={{ backgroundColor: r.books?.cover_color || "hsl(210 60% 50%)" }} />
                     <div>
                       <p className="font-medium text-sm">{r.books?.title}</p>
-                      <p className="text-xs text-muted-foreground">{r.books?.author} · Reserved {new Date(r.reservation_date).toLocaleDateString()}</p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span className="text-xs text-muted-foreground">{r.books?.author} · Reserved {new Date(r.created_at).toLocaleDateString()}</span>
+                        {r.books?.shelf_location && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-accent font-semibold bg-accent/10 px-1.5 py-0.5 rounded">
+                            📍 {r.books.shelf_location}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className={`text-xs capitalize ${statusStyles[r.status]}`}>{r.status}</Badge>
+                    <Badge variant="outline" className={`text-xs capitalize ${statusStyles[r.status]}`}>{r.status === "fulfilled" ? "taken" : r.status === "cancelled" ? "not taken" : r.status}</Badge>
+
                     {r.status === "active" && (
                       <button onClick={() => handleCancel(r.id)} className="flex items-center gap-1 text-xs font-medium text-destructive hover:underline">
                         <X className="w-3.5 h-3.5" /> Cancel

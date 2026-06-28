@@ -46,7 +46,7 @@ const Circulation = () => {
       // Find patron by email
       const { data: profile } = await supabase.from("profiles").select("user_id").eq("email", userEmail).maybeSingle();
       if (!profile) throw new Error("User not found with that email");
-      
+
       const { error } = await supabase.from("circulation_records").insert({
         book_id: selectedBook,
         user_id: profile.user_id,
@@ -54,11 +54,12 @@ const Circulation = () => {
       if (error) throw error;
 
       // Update book status
-      await supabase.from("books").update({ status: "checked-out", available_copies: supabase.rpc ? 0 : 0 }).eq("id", selectedBook);
+      await supabase.from("books").update({ status: "checked-out" }).eq("id", selectedBook);
       // Decrement available copies
+
       const { data: book } = await supabase.from("books").select("available_copies").eq("id", selectedBook).single();
       if (book) {
-        await supabase.from("books").update({ 
+        await supabase.from("books").update({
           available_copies: Math.max(0, book.available_copies - 1),
           status: book.available_copies - 1 <= 0 ? "checked-out" : "available"
         }).eq("id", selectedBook);
@@ -114,6 +115,9 @@ const Circulation = () => {
     return title.toLowerCase().includes(search.toLowerCase());
   });
 
+  const taken = (filtered || []).filter((r: any) => r.status === "checked-out" || r.status === "fulfilled");
+  const returned = (filtered || []).filter((r: any) => r.status === "returned");
+
   return (
     <AdminLayout title="Circulation (Check-in / Check-out)" description="Manage book check-ins, check-outs, and renewals">
       <div className="flex items-center justify-between gap-4 mb-4">
@@ -124,48 +128,95 @@ const Circulation = () => {
         <Button onClick={() => setCheckoutOpen(true)}><ArrowRightLeft className="w-4 h-4 mr-2" />New Check-out</Button>
       </div>
       <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Book</TableHead>
-              <TableHead>Checkout Date</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Return Date</TableHead>
-              <TableHead>Renewals</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
-            ) : filtered?.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No circulation records</TableCell></TableRow>
-            ) : filtered?.map(r => (
-              <TableRow key={r.id}>
-                <TableCell className="font-medium">{(r.books as any)?.title || "Unknown"}</TableCell>
-                <TableCell className="text-sm">{format(new Date(r.checkout_date), "MMM d, yyyy")}</TableCell>
-                <TableCell className="text-sm">{format(new Date(r.due_date), "MMM d, yyyy")}</TableCell>
-                <TableCell className="text-sm">{r.return_date ? format(new Date(r.return_date), "MMM d, yyyy") : "—"}</TableCell>
-                <TableCell>{r.renewed_count}/2</TableCell>
-                <TableCell>
-                  <Badge variant={r.status === "checked-out" ? "default" : r.status === "returned" ? "secondary" : "destructive"}>
-                    {r.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {r.status === "checked-out" && (
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => checkinMutation.mutate(r)}>Check In</Button>
-                      <Button variant="ghost" size="sm" disabled={r.renewed_count >= 2} onClick={() => renewMutation.mutate(r)}>Renew</Button>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="p-5 border-b">
+          <h2 className="text-lg font-display font-semibold">Library Circulation</h2>
+          <p className="text-xs text-muted-foreground mt-1">Taken vs Returned (search applies to both sections)</p>
+        </div>
+
+        <div className="space-y-6 p-5">
+          <div>
+            <h3 className="text-md font-display font-semibold mb-3">Taken</h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Book</TableHead>
+                  <TableHead>Checkout Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Return Date</TableHead>
+                  <TableHead>Renewals</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
+                ) : taken.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No taken books</TableCell></TableRow>
+                ) : taken.map((r: any) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium">{(r.books as any)?.title || "Unknown"}</TableCell>
+                    <TableCell className="text-sm">{r.checkout_date ? format(new Date(r.checkout_date), "MMM d, yyyy") : "—"}</TableCell>
+                    <TableCell className="text-sm">{r.due_date ? format(new Date(r.due_date), "MMM d, yyyy") : "—"}</TableCell>
+                    <TableCell className="text-sm">{r.return_date ? format(new Date(r.return_date), "MMM d, yyyy") : "—"}</TableCell>
+                    <TableCell>{r.renewed_count}/2</TableCell>
+                    <TableCell>
+                      <Badge variant={r.status === "checked-out" ? "default" : "secondary"}>
+                        {r.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {r.status === "checked-out" && (
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => checkinMutation.mutate(r)}>Check In</Button>
+                          <Button variant="ghost" size="sm" disabled={r.renewed_count >= 2} onClick={() => renewMutation.mutate(r)}>Renew</Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div>
+            <h3 className="text-md font-display font-semibold mb-3">Returned</h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Book</TableHead>
+                  <TableHead>Checkout Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Return Date</TableHead>
+                  <TableHead>Renewals</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
+                ) : returned.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No returned books</TableCell></TableRow>
+                ) : returned.map((r: any) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium">{(r.books as any)?.title || "Unknown"}</TableCell>
+                    <TableCell className="text-sm">{r.checkout_date ? format(new Date(r.checkout_date), "MMM d, yyyy") : "—"}</TableCell>
+                    <TableCell className="text-sm">{r.due_date ? format(new Date(r.due_date), "MMM d, yyyy") : "—"}</TableCell>
+                    <TableCell className="text-sm">{r.return_date ? format(new Date(r.return_date), "MMM d, yyyy") : "—"}</TableCell>
+                    <TableCell>{r.renewed_count}/2</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">returned</Badge>
+                    </TableCell>
+                    <TableCell>—</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
+
 
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
         <DialogContent>

@@ -3,6 +3,9 @@
 // src/integrations/supabase/client.ts
 // ============================================
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (window.location.origin + (window.location.pathname.includes('/athen-') ? '/athen-/api' : '/api'));
+
 class QueryBuilder {
   private table: string;
   private action: 'select' | 'insert' | 'update' | 'delete' = 'select';
@@ -14,14 +17,25 @@ class QueryBuilder {
   private limitVal: number | null = null;
   private isSingle: boolean = false;
   private isMaybeSingle: boolean = false;
+  // Tracks whether .select() was chained after a mutation (insert/update/delete)
+  // In that case we keep the mutation action and just note the return columns
+  private mutationReturnSelect: boolean = false;
 
   constructor(table: string) {
     this.table = table;
   }
 
   select(str = '*') {
-    this.action = 'select';
-    this.selectStr = str;
+    // If already a mutation, don't overwrite the action.
+    // .insert().select() in Supabase means "return inserted data" — we handle
+    // this by keeping action='insert' and flagging mutationReturnSelect.
+    if (this.action === 'insert' || this.action === 'update' || this.action === 'delete') {
+      this.mutationReturnSelect = true;
+      this.selectStr = str;
+    } else {
+      this.action = 'select';
+      this.selectStr = str;
+    }
     return this;
   }
 
@@ -115,7 +129,7 @@ class QueryBuilder {
 
   async execute() {
     try {
-      const response = await fetch('/api/index.php', {
+      const response = await fetch(`${API_BASE_URL}/index.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,8 +144,11 @@ class QueryBuilder {
           orderCol: this.orderCol,
           orderAsc: this.orderAsc,
           limitVal: this.limitVal,
-          isSingle: this.isSingle,
-          isMaybeSingle: this.isMaybeSingle
+          // Only pass isSingle/isMaybeSingle for real SELECT queries.
+          // For mutations with chained .select().single(), the PHP insert already
+          // returns the full record — we resolve it directly without a secondary SELECT.
+          isSingle: this.mutationReturnSelect ? false : this.isSingle,
+          isMaybeSingle: this.mutationReturnSelect ? false : this.isMaybeSingle
         })
       });
 
@@ -139,6 +156,22 @@ class QueryBuilder {
       if (!response.ok) {
         return { data: null, error: { message: res.error || 'Database operation failed' } };
       }
+
+      // For insert/update chained with .select().single(), PHP returns the record
+      // as res.data (an object for single insert, array for bulk). Return directly.
+      if (this.mutationReturnSelect) {
+        const rawData = res.data;
+        if (this.isSingle || this.isMaybeSingle) {
+          // Unwrap: if array returned pick first item, otherwise use as-is
+          const single = Array.isArray(rawData) ? (rawData[0] ?? null) : rawData;
+          if (this.isSingle && single === null) {
+            return { data: null, error: { message: 'No record found after mutation' } };
+          }
+          return { data: single, error: null };
+        }
+        return { data: rawData, error: null };
+      }
+
       return { data: res.data, error: null };
     } catch (err: any) {
       console.error("Database Query Exception:", err);
@@ -171,13 +204,15 @@ export const supabase = {
   auth: {
     async signUp({ email, password, options }: any) {
       try {
-        const res = await fetch('/api/auth.php', {
+        const res = await fetch(`${API_BASE_URL}/auth.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'signUp',
+            action: 'register',
             email,
             password,
+            full_name: options?.data?.full_name || '',
+            account_type: options?.data?.account_type || 'patron',
             metadata: options?.data || {}
           })
         });
@@ -193,11 +228,11 @@ export const supabase = {
 
     async signInWithPassword({ email, password }: any) {
       try {
-        const res = await fetch('/api/auth.php', {
+        const res = await fetch(`${API_BASE_URL}/auth.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'signInWithPassword',
+            action: 'login',
             email,
             password
           })
@@ -207,11 +242,16 @@ export const supabase = {
           return { data: { user: null, session: null }, error: { message: data.error || 'Login failed' } };
         }
         
-        localStorage.setItem('athena_token', data.session.access_token);
-        localStorage.setItem('athena_user', JSON.stringify(data.session.user));
-        
-        triggerAuthListeners('SIGNED_IN', data.session);
-        return { data: { user: data.session.user, session: data.session }, error: null };
+        const session = data.session || {
+          access_token: data.token,
+          user: data.user,
+        };
+
+        localStorage.setItem('athena_token', session.access_token);
+        localStorage.setItem('athena_user', JSON.stringify(session.user));
+
+        triggerAuthListeners('SIGNED_IN', session);
+        return { data: { user: session.user, session }, error: null };
       } catch (err: any) {
         return { data: { user: null, session: null }, error: { message: err.message } };
       }
@@ -219,7 +259,7 @@ export const supabase = {
 
     async signOut() {
       try {
-        await fetch('/api/auth.php', {
+        await fetch(`${API_BASE_URL}/auth.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'signOut' })
@@ -231,6 +271,27 @@ export const supabase = {
       localStorage.removeItem('athena_user');
       triggerAuthListeners('SIGNED_OUT', null);
       return { error: null };
+    },
+
+    async changePassword({ userId, password }: any) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'changePassword',
+            userId,
+            password
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          return { error: { message: data.error || 'Password update failed' } };
+        }
+        return { error: null };
+      } catch (err: any) {
+        return { error: { message: err.message } };
+      }
     },
 
     async getSession() {
@@ -274,7 +335,7 @@ export const supabase = {
             formData.append('path', path);
             formData.append('bucket', bucket);
 
-            const res = await fetch('/api/storage.php', {
+            const res = await fetch(`${API_BASE_URL}/storage.php`, {
               method: 'POST',
               body: formData
             });
@@ -291,7 +352,7 @@ export const supabase = {
         getPublicUrl(path: string) {
           return {
             data: {
-              publicUrl: `/api/uploads/${bucket}/${path}`
+              publicUrl: `${API_BASE_URL}/uploads/${bucket}/${path}`
             }
           };
         }
@@ -302,7 +363,7 @@ export const supabase = {
   functions: {
     async invoke(name: string, options?: { body: any }) {
       try {
-        const res = await fetch('/api/functions.php', {
+        const res = await fetch(`${API_BASE_URL}/functions.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, ...options?.body })

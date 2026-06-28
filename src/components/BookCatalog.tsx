@@ -71,6 +71,7 @@ const BookCatalog = () => {
               <th className="text-left font-medium text-muted-foreground px-5 py-3">Title</th>
               <th className="text-left font-medium text-muted-foreground px-5 py-3 hidden md:table-cell">Author</th>
               <th className="text-left font-medium text-muted-foreground px-5 py-3 hidden lg:table-cell">Category</th>
+              <th className="text-left font-medium text-muted-foreground px-5 py-3 hidden md:table-cell">Shelf</th>
               <th className="text-left font-medium text-muted-foreground px-5 py-3">Status</th>
               <th className="text-right font-medium text-muted-foreground px-5 py-3 hidden sm:table-cell">Copies</th>
             </tr>
@@ -83,12 +84,28 @@ const BookCatalog = () => {
                     <div className="w-8 h-11 rounded-sm flex-shrink-0 shadow-sm" style={{ backgroundColor: book.cover_color || "hsl(210 60% 50%)" }} />
                     <div>
                       <p className="font-medium">{book.title}</p>
-                      <p className="text-xs text-muted-foreground md:hidden">{book.author}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                        <span className="text-xs text-muted-foreground md:hidden">{book.author}</span>
+                        {!book.digital_file_url && book.shelf_location && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] text-accent font-semibold bg-accent/10 px-1.5 py-0.5 rounded md:hidden">
+                            📍 {book.shelf_location}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </td>
                 <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell">{book.author}</td>
                 <td className="px-5 py-3.5 hidden lg:table-cell"><span className="text-muted-foreground">{book.category}</span></td>
+                <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell">
+                  {!book.digital_file_url && book.shelf_location ? (
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {book.shelf_location}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground/30">—</span>
+                  )}
+                </td>
                 <td className="px-5 py-3.5">
                   <Badge variant="outline" className={`text-xs capitalize ${statusStyles[book.status] || ""}`}>
                     {book.status.replace("-", " ")}

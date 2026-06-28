@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Home, Search, BookCopy, CalendarClock, DollarSign, User, LogOut, Menu, Library } from "lucide-react";
+import { Home, Search, BookCopy, CalendarClock, DollarSign, User, LogOut, Menu, Library, Shield, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,9 +50,9 @@ const MobileUserNavigation = () => {
           <Library className="w-5 h-5 text-primary" />
           <span className="font-display font-bold text-lg text-foreground tracking-wide">Athena</span>
         </div>
-        
+
         {/* Right side profile circle / trigger ID card */}
-        <button 
+        <button
           onClick={() => setOpenDrawer(true)}
           className="w-8 h-8 rounded-full border border-primary/20 bg-muted overflow-hidden flex items-center justify-center text-sm font-bold text-primary"
         >
@@ -70,8 +70,7 @@ const MobileUserNavigation = () => {
         <NavLink
           to="/home"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`
           }
         >
@@ -83,8 +82,7 @@ const MobileUserNavigation = () => {
         <NavLink
           to="/catalog"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`
           }
         >
@@ -133,8 +131,7 @@ const MobileUserNavigation = () => {
         <NavLink
           to="/my-books"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            `flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`
           }
         >
@@ -157,36 +154,66 @@ const MobileUserNavigation = () => {
               </SheetHeader>
               <div className="p-4 space-y-1">
                 <button
-                  onClick={() => { setOpenSheet(false); navigate("/reservations"); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    location.pathname === "/reservations"
+                  onClick={() => { setOpenSheet(false); navigate("/holds"); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === "/holds"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                    }`}
+                >
+                  <CalendarClock className="w-4 h-4" />
+                  Holds
+                </button>
+
+                <button
+                  onClick={() => { setOpenSheet(false); navigate("/reservations"); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === "/reservations"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                 >
                   <CalendarClock className="w-4 h-4" />
                   Reservations
                 </button>
-                
+
                 <button
                   onClick={() => { setOpenSheet(false); navigate("/fines"); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    location.pathname === "/fines"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === "/fines"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   <DollarSign className="w-4 h-4" />
                   Fines & Fees
                 </button>
 
                 <button
-                  onClick={() => { setOpenSheet(false); navigate("/profile"); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    location.pathname === "/profile"
+                  onClick={() => { setOpenSheet(false); navigate("/clearance"); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === "/clearance"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                    }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  Clearance Status
+                </button>
+
+                <button
+                  onClick={() => { setOpenSheet(false); navigate("/academic-services"); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === "/academic-services"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  Academic Services
+                </button>
+
+                <button
+                  onClick={() => { setOpenSheet(false); navigate("/profile"); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === "/profile"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                 >
                   <User className="w-4 h-4" />
                   My Profile

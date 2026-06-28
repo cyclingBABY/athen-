@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, ArrowRightLeft, ClipboardList, Shield, Trash2, FileSpreadsheet, ScanLine, UserCheck, GraduationCap } from "lucide-react";
+import { BookOpen, LayoutDashboard, Users, BookCopy, CalendarClock, DollarSign, BarChart3, Settings, Search, LogOut, QrCode, Upload, MapPin, ArrowRightLeft, ClipboardList, Shield, Trash2, FileSpreadsheet, ScanLine, UserCheck, GraduationCap, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import MobileAdminNavigation from "@/components/MobileAdminNavigation";
@@ -10,12 +10,17 @@ const navItems = [
   { icon: Upload, label: "Digital Upload", path: "/admin/digital-upload" },
   { icon: MapPin, label: "Shelf Location", path: "/admin/shelf-location" },
   { icon: ArrowRightLeft, label: "Circulation", path: "/admin/circulation" },
+  // Book Tracking (double-tick workflow)
+  { icon: ClipboardList, label: "Book Tracking", path: "/admin/book-tracking" },
+
   { icon: UserCheck, label: "Approvals", path: "/admin/approvals" },
   { icon: Users, label: "Users", path: "/admin/users" },
   { icon: GraduationCap, label: "Lecturers", path: "/admin/lecturers" },
   { icon: ClipboardList, label: "Inventory", path: "/admin/inventory" },
-  { icon: CalendarClock, label: "Holds", path: "/admin/holds" },
+  { icon: BookCopy, label: "Holds", path: "/admin/holds" },
+  { icon: CalendarClock, label: "Reservations", path: "/admin/reservations" },
   { icon: DollarSign, label: "Fines & Fees", path: "/admin/fines" },
+  { icon: ShieldCheck, label: "Clearance Dashboard", path: "/registrar/dashboard" },
   { icon: Shield, label: "Digital Access", path: "/admin/digital-access" },
   { icon: Trash2, label: "Weeding", path: "/admin/weeding" },
   { icon: BarChart3, label: "Reporting", path: "/admin/reporting" },
@@ -25,9 +30,19 @@ const navItems = [
 ];
 
 const AppSidebar = () => {
-  const { signOut } = useAuth();
+  const { signOut, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const filteredNavItems = navItems.filter(item => {
+    if (role === "registrar") {
+      return item.path === "/registrar/dashboard";
+    }
+    if (role === "staff") {
+      return !["/admin/weeding", "/admin/reporting", "/admin/bulk-import", "/admin/users", "/admin/approvals", "/admin/lecturers"].includes(item.path);
+    }
+    return true;
+  });
 
   return (
     <>
@@ -52,15 +67,14 @@ const AppSidebar = () => {
         </div>
 
         <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ icon: Icon, label, path }) => (
+          {filteredNavItems.map(({ icon: Icon, label, path }) => (
             <button
               key={label}
               onClick={() => navigate(path)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname === path
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname === path
                   ? "bg-sidebar-accent text-sidebar-primary"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              }`}
+                }`}
             >
               <Icon className="w-[18px] h-[18px] shrink-0" />
               {label}

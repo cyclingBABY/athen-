@@ -16,6 +16,7 @@ const UserProfile = () => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [password, setPassword] = useState("");
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -36,14 +37,39 @@ const UserProfile = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase
+    
+    const { error: profileError } = await supabase
       .from("profiles")
       .update({ full_name: fullName, phone, address })
       .eq("user_id", user!.id);
-    if (error) {
-      toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+      
+    if (profileError) {
+      toast({ title: "Failed to update profile", description: profileError.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+
+    if (password.trim()) {
+      if (password.trim().length < 6) {
+        toast({ title: "Failed to update password", description: "Password must be at least 6 characters", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      const { error: pwdError } = await (supabase.auth as any).changePassword({
+        userId: user!.id,
+        password: password.trim()
+      });
+
+      if (pwdError) {
+        toast({ title: "Failed to update password", description: pwdError.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      setPassword("");
+      toast({ title: "Profile and password updated successfully!" });
     } else {
-      toast({ title: "Profile updated!" });
+      toast({ title: "Profile updated successfully!" });
     }
     setSaving(false);
   };
@@ -107,6 +133,11 @@ const UserProfile = () => {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Address</label>
                 <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={3} className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Change Password</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Leave blank to keep current password" className="w-full px-3 py-2.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring/30" />
+                <p className="text-[11px] text-muted-foreground mt-0.5">Min 6 characters</p>
               </div>
               <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2">
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
